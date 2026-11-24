@@ -41,7 +41,9 @@ public final class IosRules {
                         "userContentController\\.add\\s*\\(|addScriptMessageHandler", CODE),
                 LineRule.of("WEBVIEW", "CWE-749", "UIWebView (지원 중단, 보안 설정이 약함)", "\\bUIWebView\\b", CODE),
                 LineRule.of("WEBVIEW", "CWE-79", "WKWebView 에 HTML·URL·스크립트 넣기",
-                        "\\.loadHTMLString\\s*\\(|\\.evaluateJavaScript\\s*\\(|\\.load\\s*\\(\\s*URLRequest\\s*\\(", CODE),
+                        "\\.loadHTMLString\\s*\\(|\\.evaluateJavaScript\\s*\\(|\\.load\\s*\\(\\s*URLRequest\\s*\\("
+                                // Objective-C 메시지: [webView evaluateJavaScript:… / loadHTMLString:… / loadRequest:…]
+                                + "|\\s(?:loadHTMLString|evaluateJavaScript|loadRequest):", CODE),
                 // SQL
                 LineRule.of("SQL", "CWE-89", "SQLite 쿼리 (sqlite3_exec / prepare, FMDB)",
                         "\\bsqlite3_(?:exec|prepare(?:_v2|_v3)?)\\s*\\(|\\.execute(?:Query|Update)\\s*\\(", CODE),

@@ -110,7 +110,7 @@ public class SherlockTools {
             }
             if (app.ios().detected()) {
                 sb.append("플랫폼: iOS · Info.plist ").append(app.ios().infoPlists().size()).append("개, entitlements ")
-                        .append(app.ios().entitlements().size()).append("개 (Swift 는 호출 경로까지, Objective-C 는 줄 단위 규칙만)\n");
+                        .append(app.ios().entitlements().size()).append("개 (Swift·Objective-C 호출 경로까지)\n");
             }
             if (!app.android().detected() && !app.ios().detected()) {
                 sb.append("플랫폼: AndroidManifest.xml·Info.plist 를 찾지 못함 (줄 단위 규칙과 Java·Kotlin 코드만 봄)\n");
@@ -292,7 +292,7 @@ public class SherlockTools {
 
     ToolDef findCodeNodes() {
         return new ToolDef("find_code_nodes", "코드 노드 찾기",
-                "이름으로 클래스·메서드(Java·Kotlin·Swift)·입구·위험 지점을 찾는다 (대소문자 무시, 부분 일치). 메서드 이름은 'Class#method(ParamType)' 형식이다.",
+                "이름으로 클래스·메서드(Java·Kotlin·Swift·Objective-C)·입구·위험 지점을 찾는다 (대소문자 무시, 부분 일치). 메서드 이름은 'Class#method(ParamType)' 형식이다.",
                 schema(props(
                         "app", APP,
                         "query", string("찾을 이름 일부 (예: StatementProvider#query)"),

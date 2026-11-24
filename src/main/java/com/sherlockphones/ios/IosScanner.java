@@ -23,7 +23,7 @@ import java.util.stream.Stream;
 /**
  * iOS 앱을 훑는다: Info.plist(ATS 예외, 파일 공유, URL 스킴), *.entitlements(디버그 허용, 유니버설 링크),
  * Swift·Objective-C 줄 단위 규칙. URL 스킴·유니버설 링크 입구에는 URL 을 받는 곳(handlerLocations, 파일:줄)을 달고,
- * 코드 그래프가 그 위치의 Swift 함수로 잇는다.
+ * 코드 그래프가 그 위치의 Swift 함수·Objective-C 메서드로 잇는다.
  */
 public final class IosScanner {
 
@@ -157,7 +157,7 @@ public final class IosScanner {
         return new StaticSink(plist.path(), line, 1, category, cwe, api, snippet, StaticSink.CONFIG);
     }
 
-    /** Swift 함수로 잇지 못했을 때(Objective-C, SwiftUI 클로저, 파서를 쓸 수 없음) 보여 줄 위치 */
+    /** 함수로 잇지 못했을 때(SwiftUI 클로저, 파서를 쓸 수 없음) 보여 줄 위치 */
     private static String handlerNote(List<String> handlers) {
         return "호출 경로 없음. URL 을 받는 곳: "
                 + (handlers.isEmpty() ? "찾지 못함 (grep_code 로 openURL·onOpenURL·userActivity 를 찾을 것)" : String.join(", ", handlers));

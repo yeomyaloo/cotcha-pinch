@@ -54,6 +54,64 @@ class IosTest {
     }
 
     @Test
+    void Objective_C_앱도_URL_스킴과_브리지에서_호출_경로를_잇는다() throws IOException {
+        Path root = home.resolve("objc-app");
+        Files.createDirectories(root.resolve("Legacy"));
+        Files.writeString(root.resolve("Legacy/Info.plist"), """
+                <?xml version="1.0" encoding="UTF-8"?>
+                <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+                <plist version="1.0"><dict>
+                <key>CFBundleURLTypes</key><array><dict><key>CFBundleURLSchemes</key><array><string>legacy</string></array></dict></array>
+                </dict></plist>
+                """);
+        Files.writeString(root.resolve("Legacy/AppDelegate.m"), """
+                #import "PayeeStore.h"
+
+                @implementation AppDelegate
+
+                - (BOOL)application:(UIApplication *)app openURL:(NSURL *)url options:(NSDictionary *)options {
+                    PayeeStore *store = [[PayeeStore alloc] init];
+                    [store removePayee:url.query];
+                    return YES;
+                }
+
+                @end
+                """);
+        Files.writeString(root.resolve("Legacy/PayeeStore.m"), """
+                #import <sqlite3.h>
+
+                @implementation PayeeStore
+                - (void)removePayee:(NSString *)name {
+                    NSString *sql = [NSString stringWithFormat:@"DELETE FROM payee WHERE name = '%@'", name];
+                    sqlite3_exec(db, [sql UTF8String], NULL, NULL, NULL);
+                }
+                @end
+                """);
+        Files.writeString(root.resolve("Legacy/Bridge.m"), """
+                #import <WebKit/WebKit.h>
+
+                @interface Bridge : NSObject <WKScriptMessageHandler>
+                @property (nonatomic, strong) WKWebView *webView;
+                @end
+
+                @implementation Bridge
+                - (void)userContentController:(WKUserContentController *)c didReceiveScriptMessage:(WKScriptMessage *)message {
+                    [self.webView evaluateJavaScript:message.body completionHandler:nil];
+                }
+                @end
+                """);
+        SherlockTools tools = tools();
+        call(tools, "load_app", Map.of("path", root.toString()));
+
+        assertThat(call(tools, "list_components", Map.of("app", "objc-app")))
+                .contains("URL_SCHEME legacy://", "입력을 받는 메서드: AppDelegate#application:openURL:options:",
+                        "JS_BRIDGE Bridge#userContentController:didReceiveScriptMessage:");
+        assertThat(call(tools, "list_sink_paths", Map.of("app", "objc-app")))
+                .contains("URL_SCHEME legacy://  →  [SQL CWE-89]", "PayeeStore#removePayee:",
+                        "JS_BRIDGE Bridge#userContentController:didReceiveScriptMessage:  →  [WEBVIEW");
+    }
+
+    @Test
     void 내부_선언이_있는_plist_는_읽지_않는다() throws IOException {
         Path root = home.resolve("evil");
         Files.createDirectories(root.resolve("App"));

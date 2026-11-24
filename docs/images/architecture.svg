@@ -69,9 +69,9 @@
   <rect x="488" y="252" width="230" height="176" rx="10" fill="#FFFFFF" stroke="#FCD34D"/>
   <text x="502" y="276" class="h">③ code graph</text>
   <text x="502" y="300" class="s">entry points → calls → sinks</text>
-  <text x="502" y="324" class="xs">Java · Kotlin · Swift: cotcha-trail</text>
-  <text x="502" y="346" class="xs">  engine (call graph) · Obj-C:</text>
-  <text x="502" y="362" class="xs">  line rules, no paths yet</text>
+  <text x="502" y="324" class="xs">Java · Kotlin · Swift · Obj-C:</text>
+  <text x="502" y="346" class="xs">  cotcha-trail engine (call</text>
+  <text x="502" y="362" class="xs">  graph) + mobile rules</text>
   <text x="502" y="384" class="xs">entry: exported components, deep</text>
   <text x="502" y="400" class="xs">  links, URL schemes, JS bridges</text>
 

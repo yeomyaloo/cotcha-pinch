@@ -12,6 +12,10 @@ import com.codeagent.core.model.CodeEdgeKind;
 import com.codeagent.core.model.CodeGraphDraft;
 import com.codeagent.core.model.CodeGraphDraft.NodeDraft;
 import com.codeagent.core.model.CodeNodeKind;
+import com.codeagent.core.objc.ObjcGraphSupport;
+import com.codeagent.core.objc.ObjcProject;
+import com.codeagent.core.objc.ObjcProject.ObjcMethod;
+import com.codeagent.core.objc.ObjcProject.ObjcType;
 import com.codeagent.core.rules.SinkRule;
 import com.codeagent.core.swift.SwiftGraphSupport;
 import com.codeagent.core.swift.SwiftProject;
@@ -37,8 +41,8 @@ import java.util.Optional;
 import java.util.Set;
 
 /**
- * 모바일 앱의 코드 그래프를 만든다. Java·Kotlin·Swift 파싱·구조·호출 연결은 공용 엔진 cotcha-trail(core-code-agent)의
- * {@link JavaGraphSupport}·{@link KotlinGraphSupport}·{@link SwiftGraphSupport} 가 맡고,
+ * 모바일 앱의 코드 그래프를 만든다. Java·Kotlin·Swift·Objective-C 파싱·구조·호출 연결은 공용 엔진 cotcha-trail(core-code-agent)의
+ * {@link JavaGraphSupport}·{@link KotlinGraphSupport}·{@link SwiftGraphSupport}·{@link ObjcGraphSupport} 가 맡고,
  * 여기서는 앱 고유의 것만 더한다: 외부에 열린 컴포넌트와 JS 브리지(진입점), 플랫폼 위험 지점 규칙(AppScan),
  * 아무 인증서나 믿는 TLS 구현, 줄 단위·설정 위험 지점.
  */
@@ -54,44 +58,53 @@ public class CodeGraphBuilder {
     /** 웹 페이지의 window.webkit.messageHandlers.*.postMessage 를 받는 프로토콜과 함수 */
     private static final String SCRIPT_HANDLER = "WKScriptMessageHandler";
     private static final Set<String> SCRIPT_HANDLER_FUNCTIONS = Set.of("userContentController");
+    private static final String SCRIPT_HANDLER_SELECTOR = "userContentController:didReceiveScriptMessage:";
 
     private final JavaProject project;
     private final KotlinProject kotlin;
     private final KotlinGraphSupport kotlinSupport;
     private final SwiftProject swift;
     private final SwiftGraphSupport swiftSupport;
+    private final ObjcProject objc;
+    private final ObjcGraphSupport objcSupport;
     private final AppScan scan;
     private final CodeGraphDraft draft = new CodeGraphDraft();
     private final JavaGraphSupport support;
     /** 모든 인증서·호스트를 믿는 프로젝트 클래스 → 그 위험 지점 노드 키 */
     private final Map<String, String> trustAllTypes = new HashMap<>();
 
-    public CodeGraphBuilder(JavaProject project, KotlinProject kotlin, SwiftProject swift, AppScan scan) {
+    public CodeGraphBuilder(JavaProject project, KotlinProject kotlin, SwiftProject swift, ObjcProject objc, AppScan scan) {
         this.project = project;
         this.kotlin = kotlin;
         this.swift = swift;
+        this.objc = objc;
         this.scan = scan;
         this.support = new JavaGraphSupport(project, draft, scan.knownReturnTypes());
         this.kotlinSupport = new KotlinGraphSupport(kotlin, draft, scan.knownReturnTypes());
         this.swiftSupport = new SwiftGraphSupport(swift, draft, Map.of());
+        this.objcSupport = new ObjcGraphSupport(objc, draft);
     }
 
     public CodeGraphDraft build() {
         project.types().forEach(support::addStructure);
         kotlin.types().forEach(kotlinSupport::addStructure);
         swift.types().forEach(swiftSupport::addStructure);
+        objc.types().forEach(objcSupport::addStructure);
         project.types().forEach(support::addOverrides);
         kotlin.types().forEach(kotlinSupport::addOverrides);
         swift.types().forEach(swiftSupport::addOverrides);
+        objc.types().forEach(objcSupport::addOverrides);
         project.types().forEach(this::addTrustAll);
         scan.components().forEach(this::addComponent);
         project.types().forEach(this::addBridges);
         kotlin.types().forEach(this::addKotlinBridges);
         swift.types().forEach(this::addSwiftBridges);
+        objc.types().forEach(this::addObjcBridges);
         project.types().forEach(t -> t.methods().forEach(this::addCalls));
         kotlin.types().forEach(t -> t.functions().forEach(f -> kotlinSupport.addCalls(f, scan::match, CODE)));
-        // iOS 위험 지점은 줄 단위 규칙이라 Swift 는 호출 잇기만 한다 (위험 지점은 addStaticSink 가 감싼 함수에 단다)
+        // iOS 위험 지점은 줄 단위 규칙이라 Swift·Objective-C 는 호출 잇기만 한다 (위험 지점은 addStaticSink 가 감싼 함수에 단다)
         swift.types().forEach(t -> t.functions().forEach(f -> swiftSupport.addCalls(f, (type, method) -> Optional.empty(), CODE)));
+        objc.types().forEach(t -> t.methods().forEach(m -> objcSupport.addCalls(m, (type, method) -> Optional.empty(), CODE)));
         scan.staticSinks().forEach(this::addStaticSink);
         maskSnippets();
         return draft;
@@ -174,33 +187,41 @@ public class CodeGraphBuilder {
         kotlinHandlers.forEach(f -> draft.addEdge(entryKey, KotlinGraphSupport.methodKey(f), CodeEdgeKind.ROUTES_TO));
     }
 
-    /** URL 스킴·유니버설 링크: 선언은 plist·entitlements 에 있고, URL 을 받는 위치를 감싼 Swift 함수로 잇는다 */
+    /** URL 스킴·유니버설 링크: 선언은 plist·entitlements 에 있고, URL 을 받는 위치를 감싼 Swift 함수·Objective-C 메서드로 잇는다 */
     private void addIosLink(Component component) {
         Map<String, Object> props = new LinkedHashMap<>(component.props());
         props.put("kind", component.kind());
         props.put("component", component.className());
         props.put("declaredIn", component.declaredIn() + ":" + component.line());
         List<SwiftFunction> handlers = new ArrayList<>();
+        List<ObjcMethod> objcHandlers = new ArrayList<>();
         Object locations = props.remove("handlerLocations");
         if (locations instanceof List<?> list) {
             for (Object location : list) {
                 String text = String.valueOf(location);
                 int colon = text.lastIndexOf(':');
-                if (colon < 0 || !text.substring(0, colon).endsWith(".swift")) {
+                if (colon < 0) {
                     continue;
                 }
-                swift.functionAt(text.substring(0, colon), Integer.parseInt(text.substring(colon + 1)))
-                        .filter(f -> !handlers.contains(f))
-                        .ifPresent(handlers::add);
+                String path = text.substring(0, colon);
+                int line = Integer.parseInt(text.substring(colon + 1));
+                if (path.endsWith(".swift")) {
+                    swift.functionAt(path, line).filter(f -> !handlers.contains(f)).ifPresent(handlers::add);
+                } else if (path.endsWith(".m") || path.endsWith(".mm")) {
+                    objc.methodAt(path, line).filter(m -> !objcHandlers.contains(m)).ifPresent(objcHandlers::add);
+                }
             }
         }
-        props.put("handlers", handlers.stream().map(SwiftFunction::key).toList());
-        if (!handlers.isEmpty()) {
+        List<String> handlerKeys = new ArrayList<>(handlers.stream().map(SwiftFunction::key).toList());
+        objcHandlers.forEach(m -> handlerKeys.add(m.key()));
+        props.put("handlers", handlerKeys);
+        if (!handlerKeys.isEmpty()) {
             props.remove("source");
         }
         String entryKey = draft.addNode(new NodeDraft(CodeNodeKind.ENTRY_POINT, component.label(), component.declaredIn(),
                 component.line(), component.line(), props));
         handlers.forEach(f -> draft.addEdge(entryKey, SwiftGraphSupport.methodKey(f), CodeEdgeKind.ROUTES_TO));
+        objcHandlers.forEach(m -> draft.addEdge(entryKey, ObjcGraphSupport.methodKey(m), CodeEdgeKind.ROUTES_TO));
     }
 
     /** WKScriptMessageHandler 의 userContentController(_:didReceive:): WebView 의 자바스크립트가 보낸 메시지를 받는다 */
@@ -219,6 +240,25 @@ public class CodeGraphBuilder {
             String entryKey = draft.addNode(new NodeDraft(CodeNodeKind.ENTRY_POINT, "JS_BRIDGE " + function.key(),
                     function.file().filePath(), function.startLine(), function.endLine(), props));
             draft.addEdge(entryKey, SwiftGraphSupport.methodKey(function), CodeEdgeKind.ROUTES_TO);
+        }
+    }
+
+    /** Objective-C 의 WKScriptMessageHandler: userContentController:didReceiveScriptMessage: */
+    private void addObjcBridges(ObjcType type) {
+        if (!objc.lineage(type).contains(SCRIPT_HANDLER)) {
+            return;
+        }
+        for (ObjcMethod method : type.methods()) {
+            if (!method.selector().equals(SCRIPT_HANDLER_SELECTOR) || method.file().filePath().endsWith(".h")) {
+                continue;
+            }
+            Map<String, Object> props = new LinkedHashMap<>();
+            props.put("kind", "JS_BRIDGE");
+            props.put("component", type.name());
+            props.put("handlers", List.of(method.key()));
+            String entryKey = draft.addNode(new NodeDraft(CodeNodeKind.ENTRY_POINT, "JS_BRIDGE " + method.key(),
+                    method.file().filePath(), method.startLine(), method.endLine(), props));
+            draft.addEdge(entryKey, ObjcGraphSupport.methodKey(method), CodeEdgeKind.ROUTES_TO);
         }
     }
 
@@ -368,6 +408,8 @@ public class CodeGraphBuilder {
         Optional<MethodInfo> method = sink.filePath().endsWith(".java") ? methodAt(sink.filePath(), sink.line()) : Optional.empty();
         Optional<KotlinFunction> function = sink.filePath().endsWith(".kt") ? kotlinFunctionAt(sink.filePath(), sink.line()) : Optional.empty();
         Optional<SwiftFunction> swiftFunction = sink.filePath().endsWith(".swift") ? swift.functionAt(sink.filePath(), sink.line()) : Optional.empty();
+        Optional<ObjcMethod> objcMethod = sink.filePath().endsWith(".m") || sink.filePath().endsWith(".mm")
+                ? objc.methodAt(sink.filePath(), sink.line()) : Optional.empty();
         String parentKey;
         if (method.isPresent()) {
             props.put("method", method.get().key());
@@ -378,6 +420,9 @@ public class CodeGraphBuilder {
         } else if (swiftFunction.isPresent()) {
             props.put("method", swiftFunction.get().key());
             parentKey = SwiftGraphSupport.methodKey(swiftFunction.get());
+        } else if (objcMethod.isPresent()) {
+            props.put("method", objcMethod.get().key());
+            parentKey = ObjcGraphSupport.methodKey(objcMethod.get());
         } else {
             String fileName = sink.filePath().substring(sink.filePath().lastIndexOf('/') + 1);
             props.put("method", fileName);
@@ -386,7 +431,7 @@ public class CodeGraphBuilder {
         String sinkKey = draft.addNode(new NodeDraft(CodeNodeKind.SINK,
                 sink.filePath() + "@L" + sink.line() + ":" + sink.column() + " " + sink.api(),
                 sink.filePath(), sink.line(), sink.line(), props));
-        boolean inFunction = method.isPresent() || function.isPresent() || swiftFunction.isPresent();
+        boolean inFunction = method.isPresent() || function.isPresent() || swiftFunction.isPresent() || objcMethod.isPresent();
         draft.addEdge(parentKey, sinkKey, inFunction ? CodeEdgeKind.CALLS : CodeEdgeKind.CONTAINS);
     }
 
