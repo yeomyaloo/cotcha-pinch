@@ -25,6 +25,7 @@ public final class AndroidManifests {
 
     private static final Pattern NAMESPACE = Pattern.compile("\\bnamespace\\s*=?\\s*[\"']([\\w.]+)[\"']");
     private static final Pattern APPLICATION_ID = Pattern.compile("\\bapplicationId\\s*=?\\s*[\"']([\\w.]+)[\"']");
+    private static final Pattern RESOURCE_NAME = Pattern.compile("[a-z0-9_]+");
     private static final List<String> COMPONENT_TAGS = List.of("activity", "activity-alias", "service", "receiver", "provider");
 
     /**
@@ -226,15 +227,30 @@ public final class AndroidManifests {
         return value.map(v -> v.equalsIgnoreCase("true")).orElse(false);
     }
 
-    /** @xml/network_security_config → 모듈의 res/xml/network_security_config.xml */
-    static Optional<Path> xmlResource(Manifest manifest, String reference) {
-        if (reference == null || !reference.startsWith("@xml/")) {
+    /**
+     * @xml/network_security_config → 모듈의 res/xml/network_security_config.xml.
+     * 매니페스트는 분석 대상 저장소가 쓴 것이라 믿지 않는다: 안드로이드 리소스 이름(소문자·숫자·_)만 받고,
+     * 심볼릭 링크를 따라간 실제 경로도 앱 폴더 안이어야 한다 (@xml/../../밖의파일 차단)
+     */
+    static Optional<Path> xmlResource(Path root, Manifest manifest, String reference) {
+        if (reference == null || !reference.startsWith("@xml/") || !RESOURCE_NAME.matcher(reference.substring(5)).matches()) {
             return Optional.empty();
         }
-        Path file = manifest.moduleDir().resolve(Path.of("src", "main", "res", "xml", reference.substring(5) + ".xml"));
-        if (!Files.isRegularFile(file)) {
-            file = manifest.moduleDir().resolve(Path.of("res", "xml", reference.substring(5) + ".xml"));
+        String name = reference.substring(5) + ".xml";
+        for (Path file : List.of(manifest.moduleDir().resolve(Path.of("src", "main", "res", "xml", name)),
+                manifest.moduleDir().resolve(Path.of("res", "xml", name)))) {
+            if (Files.isRegularFile(file) && insideRoot(root, file)) {
+                return Optional.of(file);
+            }
         }
-        return Files.isRegularFile(file) ? Optional.of(file) : Optional.empty();
+        return Optional.empty();
+    }
+
+    private static boolean insideRoot(Path root, Path file) {
+        try {
+            return file.toRealPath().startsWith(root.toRealPath());
+        } catch (IOException e) {
+            return false;
+        }
     }
 }

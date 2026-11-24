@@ -63,13 +63,19 @@ public final class LineScanner {
                     Matcher m = rule.pattern().matcher(line);
                     if (m.find()) {
                         sinks.add(new StaticSink(relative, i + 1, m.start() + 1, rule.category(), rule.cwe(), rule.api(),
-                                snippet(line, rule.secret() ? m : null), StaticSink.LINE));
+                                safeSnippet(line, rule, m), StaticSink.LINE));
                         break;
                     }
                 }
             }
         }
         return sinks;
+    }
+
+    /** 규칙이 찾은 값이 비밀값이면 그 값을, 아니어도 줄에 섞인 비밀값을 가린다 */
+    private static String safeSnippet(String line, LineRule rule, Matcher m) {
+        String text = snippet(line, rule.secret() ? m : null);
+        return SecretMasker.mayHoldSecretLiteral(rule.cwe()) ? SecretMasker.maskLiterals(text) : SecretMasker.mask(text);
     }
 
     /** 코드 한 줄. 비밀값이면 찾은 값의 앞 4글자만 남기고 가린다 */

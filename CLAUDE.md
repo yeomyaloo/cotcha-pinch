@@ -28,8 +28,8 @@ claude plugin validate .                    # 플러그인 구조 검사 (CLAUDE
 - **분석 대상 앱은 읽기만 한다.** 빌드, 설치, 실행하지 않는다.
 - **표준 출력은 MCP 메시지 전용이다.** 로그는 표준 오류로만.
 - 파일 접근은 반드시 `RepoFiles.resolve()` 로 앱 폴더 안인지 검사한다.
-- 앱의 XML 은 `XmlTree` 로만 읽는다 (XXE 방지).
-- 코드에서 찾은 비밀값은 도구 결과·발견·보고서에서 가린다.
+- 앱의 XML 은 `XmlTree` 로만 읽는다 (XXE 방지). 매니페스트·설정에 적힌 경로(리소스 이름 등)도 분석 대상이 쓴 입력이라 믿지 않는다: 이름 형식을 확인하고 실제 경로가 앱 폴더 안인지 본다(`AndroidManifests.xmlResource`).
+- 코드에서 찾은 비밀값은 도구 결과에서 가린다. 패턴은 `codegraph/SecretMasker` 하나에 두고, 줄 단위 규칙과 코드 그래프 snippet 이 같이 쓴다.
 - 외부로는 OSV 에 라이브러리 이름·버전만 보낸다. 테스트는 실제 OSV 에 요청하지 않는다(로컬 HttpServer 로 흉내, 프로토콜 테스트는 `SHERLOCK_PHONES_OSV=off`).
 - 발견은 위협 모델의 네 공격자(other_app, link, network, device) 중 하나를 단다.
 - 벤치마크(`benchmark/bank-app`)의 정답 파일은 앱 폴더 밖에 두고, 앱에 힌트 주석을 달지 않는다. 규칙을 바꾸면 `BenchmarkTest` 가 정답의 위험 지점 목록과 정확히 같은지 본다. 앱을 고치면 정답 파일의 줄 번호도 고친다.

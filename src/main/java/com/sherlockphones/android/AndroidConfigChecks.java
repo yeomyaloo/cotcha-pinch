@@ -46,7 +46,7 @@ public final class AndroidConfigChecks {
         }
         if (app != null) {
             Optional<String> nsc = app.attr("android:networkSecurityConfig");
-            nsc.flatMap(ref -> AndroidManifests.xmlResource(manifest, ref))
+            nsc.flatMap(ref -> AndroidManifests.xmlResource(root, manifest, ref))
                     .ifPresent(file -> sinks.addAll(networkSecurityConfig(root, file, errors)));
         }
         return sinks;

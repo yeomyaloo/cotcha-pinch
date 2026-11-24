@@ -1,8 +1,10 @@
 package com.sherlockphones.android;
 
 import com.sherlockphones.codegraph.LineRule;
+import com.sherlockphones.codegraph.SecretMasker;
 import com.codeagent.core.rules.SinkRule;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -68,7 +70,10 @@ public final class AndroidRules {
 
     private static final String SENSITIVE = "(?i:token|password|passwd|secret|session|jwt|api_?key|credential|pin_?code|otp)";
 
-    public static final List<LineRule> LINE_RULES = List.of(
+    public static final List<LineRule> LINE_RULES = lineRules();
+
+    private static List<LineRule> lineRules() {
+        List<LineRule> rules = new ArrayList<>(List.of(
             // Kotlin: Java 규칙과 같은 것을 줄 단위로
             LineRule.of("SQL", "CWE-89", "SQLiteDatabase.rawQuery / execSQL", "\\.(?:rawQuery|rawQueryWithFactory|execSQL)\\s*\\(", KT),
             LineRule.of("COMMAND", "CWE-78", "Runtime.exec / ProcessBuilder", "Runtime\\.getRuntime\\(\\)\\.exec\\s*\\(|\\bProcessBuilder\\s*\\(", KT),
@@ -98,18 +103,15 @@ public final class AndroidRules {
                     "\\.put(?:String|StringSet)\\s*\\(\\s*\"[^\"]*" + SENSITIVE, CODE),
             LineRule.of("STORAGE", "CWE-732", "다른 앱이 읽고 쓸 수 있는 파일 (MODE_WORLD_*)", "\\bMODE_WORLD_(?:READABLE|WRITEABLE)\\b", CODE),
             LineRule.of("STORAGE", "CWE-922", "외부 저장소 사용", "\\bgetExternalStorage(?:Directory|PublicDirectory)\\s*\\(", CODE),
-            LineRule.of("LOGGING", "CWE-532", "로그에 민감 정보", "\\bLog\\.(?:v|d|i|w|e|wtf)\\s*\\(.*" + SENSITIVE, CODE),
-            // 비밀값 (APK 를 풀면 누구나 볼 수 있다)
-            LineRule.secret("AWS 액세스 키", "\\bAKIA[0-9A-Z]{16}\\b", SECRET_FILES),
-            LineRule.secret("Google API 키", "\\bAIza[0-9A-Za-z_\\-]{35}\\b", SECRET_FILES),
-            LineRule.secret("Stripe 비밀 키", "\\b(?:sk|rk)_live_[0-9a-zA-Z]{16,}\\b", SECRET_FILES),
-            LineRule.secret("GitHub 토큰", "\\bgh[pousr]_[A-Za-z0-9]{36,}\\b", SECRET_FILES),
-            LineRule.secret("Slack 토큰", "\\bxox[abprs]-[A-Za-z0-9-]{10,}", SECRET_FILES),
-            LineRule.secret("LLM API 키", "\\bsk-(?:ant-|proj-)?[A-Za-z0-9_\\-]{20,}", SECRET_FILES),
-            LineRule.secret("개인 키", "-----BEGIN (?:RSA |EC |OPENSSH |DSA )?PRIVATE KEY-----", SECRET_FILES),
-            LineRule.secret("비밀값 대입",
-                    "(?i)\\b(?:api[_-]?key|api[_-]?secret|client[_-]?secret|secret[_-]?key|private[_-]?key|password|passwd)\\b"
-                            + "\\s*[:=]\\s*\"[^\"\\s$]{8,}\"", Set.of("kt", "java")));
+            LineRule.of("LOGGING", "CWE-532", "로그에 민감 정보", "\\bLog\\.(?:v|d|i|w|e|wtf)\\s*\\(.*" + SENSITIVE, CODE)));
+        // 비밀값 (APK 를 풀면 누구나 볼 수 있다). 패턴은 출력에서 가릴 때와 같은 SecretMasker 목록
+        SecretMasker.PATTERNS.forEach(p -> rules.add(
+                new LineRule("HARDCODED_SECRET", "CWE-798", "하드코딩된 비밀값: " + p.what(), p.pattern(), SECRET_FILES, true)));
+        rules.add(LineRule.secret("비밀값 대입",
+                "(?i)\\b(?:api[_-]?key|api[_-]?secret|client[_-]?secret|secret[_-]?key|private[_-]?key|password|passwd)\\b"
+                        + "\\s*[:=]\\s*\"[^\"\\s$]{8,}\"", Set.of("kt", "java")));
+        return List.copyOf(rules);
+    }
 
     /** 라이브러리 jar 없이 반환 타입을 알 수 있는 프레임워크 메서드 (getIntent().getStringExtra(...) 같은 호출의 대상 타입) */
     public static final Map<String, String> KNOWN_RETURN_TYPES = Map.ofEntries(

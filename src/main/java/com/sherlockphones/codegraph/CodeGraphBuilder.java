@@ -62,7 +62,23 @@ public class CodeGraphBuilder {
         project.types().forEach(this::addBridges);
         project.types().forEach(t -> t.methods().forEach(this::addCalls));
         scan.staticSinks().forEach(this::addStaticSink);
+        maskSnippets();
         return draft;
+    }
+
+    /** 코드 조각은 도구 출력·보고서로 나가므로 비밀값을 가린다 (new SecretKeySpec("…") 의 키 등) */
+    @SuppressWarnings("unchecked")
+    private void maskSnippets() {
+        for (NodeDraft node : draft.nodes()) {
+            if (node.kind() != CodeNodeKind.SINK || !(node.props().get("snippet") instanceof String snippet)) {
+                continue;
+            }
+            String cwe = String.valueOf(node.props().get("cwe"));
+            String masked = SecretMasker.mayHoldSecretLiteral(cwe) ? SecretMasker.maskLiterals(snippet) : SecretMasker.mask(snippet);
+            if (!masked.equals(snippet)) {
+                ((Map<String, Object>) node.props()).put("snippet", masked);
+            }
+        }
     }
 
     // ---- 진입점: 외부에 열린 컴포넌트 → 입력을 받는 메서드 ----

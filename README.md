@@ -58,7 +58,7 @@ Every check is tied to one of four attackers, and the verifier judges a finding 
 | Input validation | ✅ `SQLiteDatabase` / `SupportSQLiteDatabase` / `SQLiteQueryBuilder` (CWE-89), file paths (CWE-22), `Runtime.exec` (CWE-78), DOM/SAX XML (CWE-611) | ⏳ `sqlite3_exec`, paths | M4 |
 | Data storage | ✅ secrets in `SharedPreferences` (CWE-312), `MODE_WORLD_*` (CWE-732), external storage (CWE-922), secrets in `Log` (CWE-532) | ⏳ `UserDefaults`, `NSLog` | M9 |
 | Cryptography | ✅ `Cipher`/`MessageDigest` algorithms, hardcoded `SecretKeySpec` keys (CWE-327, CWE-328, CWE-321), `java.util.Random` (CWE-330) | ⏳ CommonCrypto | M10 |
-| Credentials | ✅ AWS, Google, Stripe, GitHub, Slack and LLM keys, private keys, `password = "…"` in code, XML, properties and Gradle files (masked in all output, CWE-798) | ⏳ | M1 |
+| Credentials | ✅ AWS, Google, Stripe, GitHub, Slack and LLM keys, private keys, `password = "…"` in code, XML, properties and Gradle files (masked in sink lists, CWE-798) | ⏳ | M1 |
 | Supply chain | ✅ Gradle, version catalogs, lockfiles (and npm for React Native) → OSV | ⏳ CocoaPods, SwiftPM | M2 |
 
 Not in scope: compiled APK/IPA analysis, runtime instrumentation (Frida), binary protections such as obfuscation and anti-tampering (M7).
@@ -129,6 +129,7 @@ Settings (environment variables): `SHERLOCK_PHONES_HOME` (default `~/.sherlock-p
 | # | Step | Status |
 |---|---|---|
 | 0 | Name, logo, design, threat model | ✅ Done |
+| 1-2 | Self-audit fixes: the network security config path from the manifest can no longer point outside the app folder (CWE-22), and secrets in code-graph snippets are masked (CWE-200) | ✅ Done |
 | 1-1 | Use the shared engine core-code-agent (0.3.0, `JavaGraphSupport`) instead of a copied Java engine; the benchmark result is unchanged | ✅ Done |
 | 1 | Android: manifest and network security config checks, exported components and JS bridges as entry points, Android Java sinks, trust-all TLS detection, Kotlin and storage/log/secret line rules, findings by attacker, OWASP Mobile / MASVS reports, `mobile-audit` skill, benchmark app with an answer key, CI | ✅ Done |
 | 2 | iOS: Info.plist / entitlements checks, Swift and Objective-C line rules, iOS benchmark app | ⏳ Planned |
@@ -168,7 +169,7 @@ src/main/java/com/sherlockphones/
 
 - **Read only.** The app under audit is never built, installed or executed.
 - **Code evidence or it didn't happen.** A finding needs a file, a line, the attacker and the code that proves it; the verifier tries to refute every one.
-- **Secrets stay secret.** Keys found in the app are masked in tool output, findings and reports.
+- **Secrets stay secret.** Known key formats, and string literals in hardcoded-key sinks, are masked in every sink list and code snippet the tools return. `read_file` shows code as it is so Claude can judge it, and the skill tells Claude to mask secrets in findings and reports.
 - **Minimal data leaves the machine.** Only library names and versions go to OSV; source code goes nowhere except to Claude through your own Claude Code session.
 
 ## License
@@ -232,7 +233,7 @@ Use Sherlock Phones only on apps you own or are authorized to test. Automated fi
 | 입력 검증 | ✅ `SQLiteDatabase`·`SupportSQLiteDatabase`·`SQLiteQueryBuilder`(CWE-89), 파일 경로(CWE-22), `Runtime.exec`(CWE-78), DOM·SAX XML(CWE-611) | ⏳ `sqlite3_exec`, 경로 | M4 |
 | 데이터 저장 | ✅ `SharedPreferences`의 비밀값(CWE-312), `MODE_WORLD_*`(CWE-732), 외부 저장소(CWE-922), `Log`의 비밀값(CWE-532) | ⏳ `UserDefaults`, `NSLog` | M9 |
 | 암호화 | ✅ `Cipher`·`MessageDigest` 알고리즘, 하드코딩된 `SecretKeySpec` 키(CWE-327, CWE-328, CWE-321), `java.util.Random`(CWE-330) | ⏳ CommonCrypto | M10 |
-| 인증 정보 | ✅ 코드·XML·properties·Gradle 파일의 AWS·Google·Stripe·GitHub·Slack·LLM 키, 개인 키, `password = "…"` (모든 출력에서 가림, CWE-798) | ⏳ | M1 |
+| 인증 정보 | ✅ 코드·XML·properties·Gradle 파일의 AWS·Google·Stripe·GitHub·Slack·LLM 키, 개인 키, `password = "…"` (위험 지점 목록에서 가림, CWE-798) | ⏳ | M1 |
 | 공급망 | ✅ Gradle, 버전 카탈로그, lockfile(React Native면 npm) → OSV | ⏳ CocoaPods, SwiftPM | M2 |
 
 범위 밖: 빌드된 APK·IPA 분석, 실행 중 계측(Frida), 난독화·위변조 방지 같은 바이너리 보호(M7).
@@ -303,6 +304,7 @@ Claude가 앱을 불러와 번호 붙은 계획(컴포넌트나 파일, 분류·
 | # | 단계 | 상태 |
 |---|---|---|
 | 0 | 이름, 로고, 설계, 위협 모델 | ✅ 완료 |
+| 1-2 | 자체 보안 검사 반영: 매니페스트가 가리키는 네트워크 보안 설정 경로가 앱 폴더 밖을 가리키지 못하게(CWE-22), 코드 그래프 조각의 비밀값도 가림(CWE-200) | ✅ 완료 |
 | 1-1 | 복사해 둔 Java 엔진 대신 공용 엔진 core-code-agent(0.3.0, `JavaGraphSupport`)를 씀. 벤치마크 결과는 그대로 | ✅ 완료 |
 | 1 | Android: 매니페스트·네트워크 보안 설정 검사, 외부에 열린 컴포넌트·JS 브리지를 입구로, 안드로이드 Java 위험 지점, 모든 인증서를 믿는 TLS 구현 찾기, Kotlin과 저장소·로그·비밀값 줄 단위 규칙, 공격자별 발견, OWASP Mobile·MASVS 보고서, `mobile-audit` 스킬, 정답이 있는 벤치마크 앱, CI | ✅ 완료 |
 | 2 | iOS: Info.plist·entitlements 검사, Swift·Objective-C 줄 단위 규칙, iOS 벤치마크 앱 | ⏳ 예정 |
@@ -342,7 +344,7 @@ src/main/java/com/sherlockphones/
 
 - **읽기만 한다.** 검사하는 앱을 빌드, 설치, 실행하지 않는다.
 - **코드 근거가 없으면 발견이 아니다.** 발견에는 파일, 줄, 공격자, 그걸 증명하는 코드가 있어야 하고, 검증 단계가 하나하나 반박해 본다.
-- **비밀값은 비밀로.** 앱에서 찾은 키는 도구 결과, 발견, 보고서 어디에서나 가린다.
+- **비밀값은 비밀로.** 알려진 키 형식과, 하드코딩된 키 위험 지점의 문자열 상수는 도구가 돌려주는 위험 지점 목록·코드 조각 어디에서나 가린다. `read_file` 은 판단을 위해 코드를 그대로 보여주고, 발견·보고서에서는 가리도록 스킬이 Claude 에게 지시한다.
 - **밖으로 나가는 데이터는 최소로.** OSV에는 라이브러리 이름과 버전만 보낸다. 소스코드는 내 Claude Code 세션을 통해 Claude에게 가는 것 말고는 어디에도 올리지 않는다.
 
 ## 라이선스
