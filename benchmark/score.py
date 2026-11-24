@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """벤치마크 채점: 정답 파일과 분석 결과(SARIF)를 비교해 재현율·정밀도·함정 오탐·일관성을 잰다.
 
-SARIF 는 Sherlock Phones 의 export_report(format=sarif) 결과다.
+SARIF 는 cotcha-pinch 의 export_report(format=sarif) 결과다.
 SARIF 를 여러 개 주면 같은 앱을 여러 번 분석한 것으로 보고, 실행마다 결과가 얼마나 같은지도 잰다.
 
     python benchmark/score.py benchmark/bank-app.expected.json report-1.sarif report-2.sarif report-3.sarif

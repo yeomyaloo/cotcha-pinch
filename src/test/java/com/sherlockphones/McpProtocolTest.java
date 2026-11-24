@@ -41,7 +41,7 @@ class McpProtocolTest {
                 .initializationTimeout(Duration.ofSeconds(60))
                 .build()) {
             var init = client.initialize();
-            assertThat(init.serverInfo().name()).isEqualTo("sherlock-phones");
+            assertThat(init.serverInfo().name()).isEqualTo("cotcha-pinch");
             assertThat(init.instructions()).contains("load_app", "check_config");
 
             assertThat(client.listTools().tools()).extracting(Tool::name)

@@ -100,7 +100,7 @@ public final class Reports {
             if (f.status() == Status.REJECTED) {
                 continue;
             }
-            String ruleId = f.cwe() == null ? "sherlock-phones" : f.cwe();
+            String ruleId = f.cwe() == null ? "cotcha-pinch" : f.cwe();
             ruleIndex.computeIfAbsent(ruleId, id -> {
                 Map<String, Object> rule = new LinkedHashMap<>();
                 rule.put("id", id);
@@ -147,8 +147,8 @@ public final class Reports {
                 "version", "2.1.0",
                 "runs", List.of(Map.of(
                         "tool", Map.of("driver", Map.of(
-                                "name", "sherlock-phones",
-                                "informationUri", "https://github.com/yeomyaloo/sherlock-phones",
+                                "name", "cotcha-pinch",
+                                "informationUri", "https://github.com/yeomyaloo/cotcha-pinch",
                                 "rules", rules)),
                         "results", results)));
         return JsonMapper.builder().enable(SerializationFeature.INDENT_OUTPUT).build().writeValueAsString(sarif);

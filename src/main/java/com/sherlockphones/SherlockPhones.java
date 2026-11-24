@@ -35,7 +35,7 @@ import java.util.Map;
 public final class SherlockPhones {
 
     private static final Logger log = LoggerFactory.getLogger(SherlockPhones.class);
-    static final String VERSION = "0.3.0";
+    static final String VERSION = "0.4.0";
 
     private SherlockPhones() {
     }
@@ -45,13 +45,13 @@ public final class SherlockPhones {
         SherlockTools tools = new SherlockTools(workspace, new AppRegistry(workspace), new FindingStore(workspace.findings()));
 
         var server = McpServer.sync(new StdioServerTransportProvider(McpJsonDefaults.getMapper()))
-                .serverInfo("sherlock-phones", VERSION)
+                .serverInfo("cotcha-pinch", VERSION)
                 .instructions(Prompts.INSTRUCTIONS)
                 .capabilities(ServerCapabilities.builder().tools(true).prompts(true).build())
                 .tools(tools.all().stream().map(SherlockPhones::toolSpec).toList())
                 .prompts(prompts())
                 .build();
-        log.info("sherlock-phones {} 시작 (작업 폴더 {})", VERSION, workspace.home());
+        log.info("cotcha-pinch {} 시작 (작업 폴더 {})", VERSION, workspace.home());
         // stdio 전송은 백그라운드 스레드에서 돈다. 클라이언트가 입력을 닫으면 프로세스가 끝난다
         Runtime.getRuntime().addShutdownHook(new Thread(server::close));
     }

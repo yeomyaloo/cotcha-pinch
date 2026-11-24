@@ -1,14 +1,14 @@
 {
-  "name": "sherlock-phones",
-  "displayName": "Sherlock Phones: mobile app security audit",
-  "version": "0.3.0",
+  "name": "cotcha-pinch",
+  "displayName": "cotcha-pinch: catch security bugs in mobile apps",
+  "version": "0.4.0",
   "description": "Audit Android app source code for security vulnerabilities in chat. Checks the manifest and network security config, follows exported components, deep links and JS bridges to dangerous code with a code graph, records findings by attacker (other app, link, network, device), re-verifies each one adversarially, and exports Markdown/SARIF reports mapped to the OWASP Mobile Top 10 and MASVS. Requires Java 17+.",
   "author": {
     "name": "hwiju yeom",
     "url": "https://github.com/yeomyaloo"
   },
-  "homepage": "https://github.com/yeomyaloo/sherlock-phones",
-  "repository": "https://github.com/yeomyaloo/sherlock-phones",
+  "homepage": "https://github.com/yeomyaloo/cotcha-pinch",
+  "repository": "https://github.com/yeomyaloo/cotcha-pinch",
   "license": "Apache-2.0",
   "keywords": [
     "security",
@@ -21,7 +21,7 @@
     "sarif"
   ],
   "mcpServers": {
-    "sherlock-phones": {
+    "cotcha-pinch": {
       "command": "java",
       "args": [
         "-Dfile.encoding=UTF-8",

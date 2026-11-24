@@ -1,6 +1,6 @@
-# Sherlock Phones
+# cotcha-pinch
 
-Android(다음 단계 iOS) 앱 소스코드의 보안 취약점을 찾는 Claude Code 플러그인 + stdio MCP 서버. Claude가 판단하고, 서버는 앱 불러오기·설정 검사·코드 그래프·파일 읽기·발견 기록·보고서를 맡는다. Java·Kotlin 파싱·구조·호출 연결은 Cotcha 공용 엔진 cotcha-trail(로컬 `../core-code-agent`, 좌표 `com.codeagent:core-code-agent`)의 `JavaGraphSupport`·`KotlinGraphSupport` 를 쓴다. GitHub 저장소 이름은 `sherlock-phones`(로컬 폴더 이름은 phonetective).
+Android(다음 단계 iOS) 앱 소스코드의 보안 취약점을 찾는 Claude Code 플러그인 + stdio MCP 서버. Claude가 판단하고, 서버는 앱 불러오기·설정 검사·코드 그래프·파일 읽기·발견 기록·보고서를 맡는다. Java·Kotlin 파싱·구조·호출 연결은 Cotcha 공용 엔진 cotcha-trail(로컬 `../core-code-agent`, 좌표 `com.codeagent:core-code-agent`)의 `JavaGraphSupport`·`KotlinGraphSupport` 를 쓴다. Cotcha 제품군(cotcha-trail·net·pocket·jar)의 모바일 버전. 처음 이름은 Sherlock Phones 였고 GitHub 저장소는 `yeomyaloo/cotcha-pinch`(로컬 폴더 이름은 phonetective). 안쪽 이름(패키지 `com.sherlockphones`, 클래스 `SherlockPhones`·`SherlockTools`, 데이터 폴더 `~/.sherlock-phones`, 환경 변수 `SHERLOCK_PHONES_*`, Gradle 프로젝트 이름)은 그대로 둔다.
 
 ## 명령
 

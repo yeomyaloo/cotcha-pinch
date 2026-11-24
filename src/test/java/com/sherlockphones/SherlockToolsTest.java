@@ -93,7 +93,7 @@ class SherlockToolsTest {
         String sarif = call("export_report", Map.of("app", "bank-app", "format", "sarif"));
         Path file = Path.of(sarif.substring(sarif.indexOf(':') + 1).strip());
         assertThat(Files.readString(file)).contains("\"owasp-mobile/M4\"", "\"masvs/MASVS-CODE\"", "\"attacker\" : \"other_app\"",
-                "sherlock-phones");
+                "cotcha-pinch");
     }
 
     @Test

@@ -1,13 +1,25 @@
 <p align="center">
-  <img src="docs/images/logo-wordmark.svg" alt="Sherlock Phones" width="600">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="docs/images/cotcha-pinch-logo-dark.svg">
+    <img src="docs/images/cotcha-pinch-logo.svg" alt="cotcha-pinch" width="300">
+  </picture>
 </p>
 
-<p align="center"><i>"Elementary, my dear app."</i></p>
+# cotcha-pinch
 
-<p align="center"><b>A pocket detective that sniffs out security bugs in Android (and soon iOS) app source code: a Claude Code plugin + MCP server</b></p>
+> **Cotcha** = *"Caught ya!"* **cotcha-pinch** is Cotcha for phones: it follows what other apps, links and the network can send into your Android (and soon iOS) app, catches the security bugs on the way, and keeps them in a jar.
+> *Pinch to catch.*
+
+| Repository | The name means | Role |
+|---|---|---|
+| [cotcha-trail](https://github.com/yeomyaloo/cotcha-trail) | the trail a bug leaves behind | Shared engine: parses Java, Kotlin and Python into a graph of entry points, sinks and the calls between them |
+| [cotcha-net](https://github.com/yeomyaloo/cotcha-net) | the bug-catching net | Server: Planner, Worker and Verifier agents sweep the code and double-check every catch (REST API, DB) |
+| [cotcha-pocket](https://github.com/yeomyaloo/cotcha-pocket) | the bug box in your pocket | Claude Code plugin / MCP server for server code |
+| [cotcha-jar](https://github.com/yeomyaloo/cotcha-jar) | the jar where caught bugs go | Web UI: paths, findings and approvals at a glance |
+| [cotcha-pinch (this repo)](https://github.com/yeomyaloo/cotcha-pinch) | the touchscreen pinch, and catching a bug between two fingers | Claude Code plugin / MCP server for mobile apps |
 
 <p align="center">
-  <img alt="Android" src="https://img.shields.io/badge/Android-phase%201-3DDC84">
+  <img alt="Android" src="https://img.shields.io/badge/Android-Java%20%2B%20Kotlin-3DDC84">
   <img alt="iOS" src="https://img.shields.io/badge/iOS-planned-lightgrey">
   <img alt="license" src="https://img.shields.io/badge/license-Apache--2.0-blue">
 </p>
@@ -16,19 +28,19 @@
 
 <a id="english"></a>
 
-*Sherlock Phones* = Sherlock Holmes, but for **phones**. Point it at your app's source folder in Claude Code and say *"audit this app"*. Claude checks the manifest, walks the app's **attack surface → dangerous code** paths, reads the real code, records only what a real attacker can exploit, then switches sides and re-checks every finding before writing a report mapped to the **OWASP Mobile Top 10** and **MASVS**.
+*Pinch* is the two-finger touchscreen gesture, and also how you catch a bug between your fingers. Point it at your app's source folder in Claude Code and say *"audit this app"*. Claude checks the manifest, walks the app's **attack surface → dangerous code** paths, reads the real code, records only what a real attacker can exploit, then switches sides and re-checks every finding before writing a report mapped to the **OWASP Mobile Top 10** and **MASVS**.
 
 It is the mobile sibling of [cotcha-pocket](https://github.com/yeomyaloo/cotcha-pocket) (Java/Spring and Python servers) and shares its idea: **Claude is the brain, the MCP server is the hands.** Java and Kotlin parsing and call linking come from the shared Cotcha engine [cotcha-trail](https://github.com/yeomyaloo/cotcha-trail); this repository adds the mobile parts (manifest and config checks, Android entry points and rules, line rules, the attacker model).
 
 - **Runs on your Claude Code login.** No separate API key, no database, no server to host. Only Java 17+.
 - **Reads source only.** It never builds, installs or runs the app, and needs no emulator or device.
-- **Fewer false alarms.** Pattern scanners flag every `WebView` and `rawQuery`. Sherlock Phones asks the next question: *can another app, a link, the network or someone holding the phone actually reach it?*
+- **Fewer false alarms.** Pattern scanners flag every `WebView` and `rawQuery`. cotcha-pinch asks the next question: *can another app, a link, the network or someone holding the phone actually reach it?*
 
 > **Status:** Android works for Java and Kotlin (both with call paths). iOS is next; see [Progress](#progress).
 
 ## How it works
 
-![Sherlock Phones architecture](docs/images/architecture.svg)
+![cotcha-pinch architecture](docs/images/architecture.svg)
 
 1. **Load the app** (`load_app`) from a folder or a public Git URL. Every module's `src/main/AndroidManifest.xml` is read; the package comes from the manifest or `namespace` in `build.gradle(.kts)`.
 2. **Config checks** that need no parser (`check_config`): `debuggable`, `allowBackup`, `usesCleartextTraffic`, components exported without a permission, and the network security config (cleartext domains, user-installed CAs). `debug-overrides` and `src/debug` manifests are ignored because they are not shipped.
@@ -69,25 +81,25 @@ Not in scope: compiled APK/IPA analysis, runtime instrumentation (Frida), binary
 **Requirement: Java 17 or later** on your `PATH` (check with `java -version`).
 
 ```bash
-claude plugin marketplace add yeomyaloo/sherlock-phones
-claude plugin install sherlock-phones@yeomyaloo-sherlock-phones
+claude plugin marketplace add yeomyaloo/cotcha-pinch
+claude plugin install cotcha-pinch@cotcha-pinch
 ```
 
-Or inside a Claude Code session: `/plugin marketplace add yeomyaloo/sherlock-phones`, then `/plugin install sherlock-phones@yeomyaloo-sherlock-phones`.
+Or inside a Claude Code session: `/plugin marketplace add yeomyaloo/cotcha-pinch`, then `/plugin install cotcha-pinch@cotcha-pinch`.
 
-Start a new session (or run `/reload-plugins`). The plugin brings the **`sherlock-phones` MCP server** (17 tools, prebuilt in `server/lib`, no build step) and the **`mobile-audit` skill**, which guides the audit: plan → approve → investigate → verify → report. Claude Code starts and stops the server itself; check it with `/mcp` (`plugin:sherlock-phones:sherlock-phones` should be connected; if it failed, Claude Code could not find `java`).
+Start a new session (or run `/reload-plugins`). The plugin brings the **`cotcha-pinch` MCP server** (17 tools, prebuilt in `server/lib`, no build step) and the **`mobile-audit` skill**, which guides the audit: plan → approve → investigate → verify → report. Claude Code starts and stops the server itself; check it with `/mcp` (`plugin:cotcha-pinch:cotcha-pinch` should be connected; if it failed, Claude Code could not find `java`).
 
 To update later, refresh the marketplace first, then update and restart Claude Code:
 
 ```bash
-claude plugin marketplace update yeomyaloo-sherlock-phones
-claude plugin update sherlock-phones@yeomyaloo-sherlock-phones
+claude plugin marketplace update cotcha-pinch
+claude plugin update cotcha-pinch@cotcha-pinch
 ```
 
 Without the plugin (Claude Code or Claude Desktop), register the server by hand:
 
 ```bash
-claude mcp add sherlock-phones --scope user -- java -Dfile.encoding=UTF-8 -cp "C:/path/to/sherlock-phones/server/lib/*" com.sherlockphones.SherlockPhones
+claude mcp add cotcha-pinch --scope user -- java -Dfile.encoding=UTF-8 -cp "C:/path/to/cotcha-pinch/server/lib/*" com.sherlockphones.SherlockPhones
 ```
 
 ## Usage
@@ -180,7 +192,7 @@ src/main/java/com/sherlockphones/
 
 ## Disclaimer
 
-Use Sherlock Phones only on apps you own or are authorized to test. Automated findings can be wrong in both directions; a clean report is not proof that an app is secure.
+Use cotcha-pinch only on apps you own or are authorized to test. Automated findings can be wrong in both directions; a clean report is not proof that an app is secure.
 
 ---
 
@@ -188,19 +200,21 @@ Use Sherlock Phones only on apps you own or are authorized to test. Automated fi
 
 # 한국어
 
-*Sherlock Phones* = 셜록 **Holmes**에서 **Phones**(폰)로. 폰을 조사하는 셜록이에요. Claude Code에서 앱 소스 폴더를 주고 *"이 앱 보안 검사해줘"*라고 하면, Claude가 매니페스트를 보고 앱의 **공격 입구 → 위험한 코드** 경로를 따라가며 실제 코드를 읽어요. 실제 공격자가 해낼 수 있는 것만 기록하고, 입장을 바꿔 발견마다 다시 확인한 뒤 **OWASP Mobile Top 10**과 **MASVS** 기준으로 보고서를 써요.
+> **Cotcha** = *"잡았다!"* **cotcha-pinch** 는 폰용 Cotcha 예요. 다른 앱·링크·네트워크가 앱 안으로 보낼 수 있는 것을 따라가며 보안 버그를 잡아 채집통(jar)에 담아요. *Pinch to catch.*
+
+*pinch*는 화면을 두 손가락으로 집는 터치 제스처이자, 벌레를 손가락으로 집어 잡는 동작이에요. Claude Code에서 앱 소스 폴더를 주고 *"이 앱 보안 검사해줘"*라고 하면, Claude가 매니페스트를 보고 앱의 **공격 입구 → 위험한 코드** 경로를 따라가며 실제 코드를 읽어요. 실제 공격자가 해낼 수 있는 것만 기록하고, 입장을 바꿔 발견마다 다시 확인한 뒤 **OWASP Mobile Top 10**과 **MASVS** 기준으로 보고서를 써요.
 
 [cotcha-pocket](https://github.com/yeomyaloo/cotcha-pocket)(Java/Spring·Python 서버용)의 모바일 버전이고, 같은 생각을 이어받았어요. **Claude는 두뇌, MCP 서버는 손발**이에요. Java·Kotlin 파싱과 호출 연결은 Cotcha 공용 엔진 [cotcha-trail](https://github.com/yeomyaloo/cotcha-trail)을 쓰고, 이 저장소는 모바일 부분(매니페스트·설정 검사, 안드로이드 입구와 규칙, 줄 단위 규칙, 공격자 모델)을 더해요.
 
 - **Claude Code 로그인으로 돌아요.** 따로 넣을 API 키, DB, 띄울 서버가 없어요. Java 17 이상만 있으면 돼요.
 - **소스만 읽어요.** 앱을 빌드하거나 설치하거나 실행하지 않아요. 에뮬레이터나 실제 기기도 필요 없어요.
-- **헛경보가 적어요.** 패턴 검사기는 `WebView`, `rawQuery`만 보이면 다 경고해요. Sherlock Phones는 한 걸음 더 물어요. *다른 앱, 링크, 네트워크, 폰을 손에 쥔 사람이 정말 거기까지 닿을 수 있나?*
+- **헛경보가 적어요.** 패턴 검사기는 `WebView`, `rawQuery`만 보이면 다 경고해요. cotcha-pinch는 한 걸음 더 물어요. *다른 앱, 링크, 네트워크, 폰을 손에 쥔 사람이 정말 거기까지 닿을 수 있나?*
 
 > **상태:** 안드로이드는 Java와 Kotlin 모두 호출 경로까지 봐요. 다음은 iOS예요. [진행 상황](#진행-상황)을 보세요.
 
 ## 동작 방식
 
-![Sherlock Phones 구조](docs/images/architecture.svg)
+![cotcha-pinch 구조](docs/images/architecture.svg)
 
 1. **앱 불러오기** (`load_app`): 폴더나 공개 Git 주소를 받아요. 모듈마다 `src/main/AndroidManifest.xml`을 읽고, 패키지는 매니페스트나 `build.gradle(.kts)`의 `namespace`에서 가져와요.
 2. **설정 검사** (`check_config`): 파서 없이 바로 돼요. `debuggable`, `allowBackup`, `usesCleartextTraffic`, 권한 없이 외부에 열린 컴포넌트, 네트워크 보안 설정(평문 HTTP 도메인, 사용자가 설치한 인증서). `debug-overrides`와 `src/debug` 매니페스트는 배포되지 않으니 보지 않아요.
@@ -246,25 +260,25 @@ Use Sherlock Phones only on apps you own or are authorized to test. Automated fi
 **필요한 것: Java 17 이상** (`java -version`으로 확인).
 
 ```bash
-claude plugin marketplace add yeomyaloo/sherlock-phones
-claude plugin install sherlock-phones@yeomyaloo-sherlock-phones
+claude plugin marketplace add yeomyaloo/cotcha-pinch
+claude plugin install cotcha-pinch@cotcha-pinch
 ```
 
-Claude Code 세션 안에서는 `/plugin marketplace add yeomyaloo/sherlock-phones` 다음 `/plugin install sherlock-phones@yeomyaloo-sherlock-phones`.
+Claude Code 세션 안에서는 `/plugin marketplace add yeomyaloo/cotcha-pinch` 다음 `/plugin install cotcha-pinch@cotcha-pinch`.
 
-새 세션을 열거나 `/reload-plugins`를 하면 **`sherlock-phones` MCP 서버**(도구 17개, `server/lib`에 미리 빌드되어 있어 빌드 단계 없음)와 **`mobile-audit` 스킬**(계획 → 승인 → 조사 → 검증 → 보고 순서 안내)이 들어와요. 서버는 Claude Code가 알아서 켜고 꺼요. `/mcp`에서 `plugin:sherlock-phones:sherlock-phones`가 연결됨이면 정상이고, 실패면 대개 `java`를 찾지 못한 거예요.
+새 세션을 열거나 `/reload-plugins`를 하면 **`cotcha-pinch` MCP 서버**(도구 17개, `server/lib`에 미리 빌드되어 있어 빌드 단계 없음)와 **`mobile-audit` 스킬**(계획 → 승인 → 조사 → 검증 → 보고 순서 안내)이 들어와요. 서버는 Claude Code가 알아서 켜고 꺼요. `/mcp`에서 `plugin:cotcha-pinch:cotcha-pinch`가 연결됨이면 정상이고, 실패면 대개 `java`를 찾지 못한 거예요.
 
 업데이트할 때는 마켓플레이스를 먼저 새로 받은 뒤 업데이트하고 Claude Code를 다시 켜요.
 
 ```bash
-claude plugin marketplace update yeomyaloo-sherlock-phones
-claude plugin update sherlock-phones@yeomyaloo-sherlock-phones
+claude plugin marketplace update cotcha-pinch
+claude plugin update cotcha-pinch@cotcha-pinch
 ```
 
 플러그인 없이(Claude Code, Claude Desktop) 직접 등록할 수도 있어요.
 
 ```bash
-claude mcp add sherlock-phones --scope user -- java -Dfile.encoding=UTF-8 -cp "C:/path/to/sherlock-phones/server/lib/*" com.sherlockphones.SherlockPhones
+claude mcp add cotcha-pinch --scope user -- java -Dfile.encoding=UTF-8 -cp "C:/path/to/cotcha-pinch/server/lib/*" com.sherlockphones.SherlockPhones
 ```
 
 ## 사용법

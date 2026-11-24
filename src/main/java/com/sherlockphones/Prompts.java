@@ -10,7 +10,7 @@ final class Prompts {
     }
 
     static final String INSTRUCTIONS = """
-            안드로이드 앱 소스코드의 보안 취약점을 찾는 도구 모음입니다 (Sherlock Phones). 판단은 Claude 가 하고, 이 서버는 매니페스트·설정 검사, 코드 그래프, 파일 읽기, 기록을 맡습니다.
+            안드로이드 앱 소스코드의 보안 취약점을 찾는 도구 모음입니다 (cotcha-pinch). 판단은 Claude 가 하고, 이 서버는 매니페스트·설정 검사, 코드 그래프, 파일 읽기, 기록을 맡습니다.
             순서: load_app → check_config · list_components · list_sink_paths · list_sinks · check_dependencies → 조사할 계획을 사용자에게 보여주고 승인받기
             → 항목마다 read_file·grep_code·get_callers 로 조사 → 공격자가 실제로 닿는 것만 record_finding(공격자 표시)
             → 발견마다 반대 입장에서 다시 확인하고 submit_verdict → export_report.

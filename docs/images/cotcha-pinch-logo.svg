@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 64" width="300" height="64" role="img" aria-label="cotcha-pinch">
+  <title>cotcha-pinch</title>
+  <rect x="12" y="2" width="40" height="60" rx="10" fill="#0F172A"/>
+  <line x1="27" y1="7.5" x2="37" y2="7.5" stroke="#334155" stroke-width="2.2" stroke-linecap="round"/>
+  <path d="M41.6 25 A13.5 13.5 0 1 0 41.6 44" fill="none" stroke="#F97316" stroke-width="4.6" stroke-linecap="round"/>
+  <g stroke="#F8FAFC" stroke-width="1.7" stroke-linecap="round">
+    <line x1="29" y1="32" x2="26" y2="30.3"/>
+    <line x1="28.7" y1="35.4" x2="25.3" y2="35.4"/>
+    <line x1="29" y1="38.8" x2="26" y2="40.5"/>
+    <line x1="35" y1="32" x2="38" y2="30.3"/>
+    <line x1="35.3" y1="35.4" x2="38.7" y2="35.4"/>
+    <line x1="35" y1="38.8" x2="38" y2="40.5"/>
+  </g>
+  <ellipse cx="32" cy="36" rx="4.5" ry="5.6" fill="#F8FAFC"/>
+  <line x1="32" y1="31.2" x2="32" y2="41.2" stroke="#0F172A" stroke-width="1.2"/>
+  <circle cx="32" cy="28.6" r="2.6" fill="#F8FAFC"/>
+  <text x="70" y="45" font-family="Inter, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="40" font-weight="700" letter-spacing="-1" fill="#0F172A">cotcha<tspan fill="#F97316">.pinch</tspan></text>
+</svg>
