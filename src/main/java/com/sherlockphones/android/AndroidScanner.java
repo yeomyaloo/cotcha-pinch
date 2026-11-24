@@ -1,9 +1,11 @@
 package com.sherlockphones.android;
 
+import com.codeagent.core.kotlin.KotlinProject;
 import com.sherlockphones.android.AndroidManifests.Declared;
 import com.sherlockphones.android.AndroidManifests.Manifest;
 import com.sherlockphones.codegraph.AppScan;
 import com.sherlockphones.codegraph.Component;
+import com.sherlockphones.codegraph.LineRule;
 import com.sherlockphones.codegraph.LineScanner;
 import com.sherlockphones.codegraph.StaticSink;
 
@@ -45,7 +47,12 @@ public final class AndroidScanner {
             }
             sinks.addAll(AndroidConfigChecks.check(root, manifest, errors));
         }
-        sinks.addAll(LineScanner.scan(root, AndroidRules.LINE_RULES));
+        // Kotlin 파서를 쓸 수 있으면 Kotlin 호출은 코드 그래프가 찾는다. 못 쓰는 OS/CPU 에서만 줄 단위로 흉내 낸다
+        List<LineRule> rules = new ArrayList<>(AndroidRules.LINE_RULES);
+        if (!KotlinProject.available()) {
+            rules.addAll(AndroidRules.KOTLIN_CALL_FALLBACK);
+        }
+        sinks.addAll(LineScanner.scan(root, rules));
         AppScan scan = new AppScan(List.copyOf(components), List.copyOf(sinks), AndroidRules.JAVA_RULES,
                 AndroidRules.KNOWN_RETURN_TYPES, AndroidRules.BRIDGE_ANNOTATIONS);
         return new AndroidApp(List.copyOf(manifests), List.copyOf(errors), scan);

@@ -1,6 +1,7 @@
 package com.sherlockphones.codegraph;
 
 import com.codeagent.core.java.JavaProject;
+import com.codeagent.core.kotlin.KotlinProject;
 import com.codeagent.core.model.CodeEdgeKind;
 import com.codeagent.core.model.CodeGraphDraft;
 import com.codeagent.core.model.CodeGraphDraft.EdgeDraft;
@@ -81,7 +82,9 @@ public class CodeGraph {
     /** 앱 폴더의 Java 소스를 파싱하고 플랫폼 재료(컴포넌트, 줄 단위·설정 위험 지점)를 더해 그래프를 만든다 */
     public static CodeGraph build(java.nio.file.Path appRoot, AppScan scan) {
         JavaProject project = JavaProject.load(appRoot);
-        return new CodeGraph(new CodeGraphBuilder(project, scan).build(), project.parseErrors());
+        List<String> errors = new ArrayList<>(project.parseErrors());
+        KotlinProject kotlin = KotlinProject.load(appRoot, errors);
+        return new CodeGraph(new CodeGraphBuilder(project, kotlin, scan).build(), errors);
     }
 
     public Stats stats() {

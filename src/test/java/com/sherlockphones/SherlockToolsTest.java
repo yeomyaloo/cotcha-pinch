@@ -37,8 +37,8 @@ class SherlockToolsTest {
         String result = call("load_app", Map.of("path", BenchmarkTest.APP.toString()));
 
         assertThat(result).contains("앱 id: bank-app", "플랫폼: Android", "com.example.bank",
-                "진입점(외부에 열린 컴포넌트·JS 브리지) 9", "위험 지점 34 (코드 그래프 19 · 줄 단위 규칙 8 · 설정 검사 7)",
-                "입구 → 위험 지점 경로(쌍) 11개");
+                "진입점(외부에 열린 컴포넌트·JS 브리지) 9", "위험 지점 34 (코드 그래프 21 · 줄 단위 규칙 6 · 설정 검사 7)",
+                "입구 → 위험 지점 경로(쌍) 12개");
     }
 
     @Test
@@ -53,7 +53,7 @@ class SherlockToolsTest {
                 .contains("PROVIDER com.example.bank.data.StatementProvider · 권한 없음 · authorities com.example.bank.statements")
                 .contains("입력을 받는 메서드: StatementProvider#query(Uri,String[],String,String[],String)")
                 .contains("JS_BRIDGE com.example.bank.web.BankBridge#getSessionToken()")
-                .contains("ACTIVITY com.example.bank.search.PayeeSearchActivity", "Java 소스 없음")
+                .contains("ACTIVITY com.example.bank.search.PayeeSearchActivity · 권한 없음 · 딥링크 bank://payees", "입력을 받는 메서드: PayeeSearchActivity#onCreate(Bundle)")
                 .doesNotContain("HelpActivity", "TransferActivity", "AvatarProvider");
     }
 

@@ -155,7 +155,7 @@ public class SherlockTools {
         return new ToolDef("list_components", "외부에 열린 입구",
                 "다른 앱·링크·웹 콘텐츠가 들어올 수 있는 입구 목록: 외부에 열린(exported) Activity·Service·Receiver·Provider 와 "
                         + "딥링크(BROWSABLE), WebView 자바스크립트가 부를 수 있는 @JavascriptInterface 메서드(JS_BRIDGE). "
-                        + "권한(permission)이 걸린 것도 보여준다. 'Java 소스 없음' 이면 Kotlin 이라 호출 경로가 없으니 read_file 로 직접 본다.",
+                        + "권한(permission)이 걸린 것도 보여준다. Java·Kotlin 클래스의 입력을 받는 메서드로 이어진다. '앱 소스에 클래스가 없음' 이면 read_file·grep_code 로 직접 본다.",
                 schema(props("app", APP), List.of("app")), true, false, args -> {
             List<Node> entries = app(args).graph().nodes(CodeNodeKind.ENTRY_POINT);
             if (entries.isEmpty()) {

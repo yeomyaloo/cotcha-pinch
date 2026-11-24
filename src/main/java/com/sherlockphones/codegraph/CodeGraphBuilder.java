@@ -4,6 +4,10 @@ import com.codeagent.core.java.JavaGraphSupport;
 import com.codeagent.core.java.JavaProject;
 import com.codeagent.core.java.JavaProject.MethodInfo;
 import com.codeagent.core.java.JavaProject.TypeInfo;
+import com.codeagent.core.kotlin.KotlinGraphSupport;
+import com.codeagent.core.kotlin.KotlinProject;
+import com.codeagent.core.kotlin.KotlinProject.KotlinFunction;
+import com.codeagent.core.kotlin.KotlinProject.KotlinType;
 import com.codeagent.core.model.CodeEdgeKind;
 import com.codeagent.core.model.CodeGraphDraft;
 import com.codeagent.core.model.CodeGraphDraft.NodeDraft;
@@ -29,7 +33,8 @@ import java.util.Optional;
 import java.util.Set;
 
 /**
- * 모바일 앱의 코드 그래프를 만든다. Java 파싱·구조·호출 연결은 공용 엔진(core-code-agent)의 {@link JavaGraphSupport} 가 맡고,
+ * 모바일 앱의 코드 그래프를 만든다. Java·Kotlin 파싱·구조·호출 연결은 공용 엔진 cotcha-trail(core-code-agent)의
+ * {@link JavaGraphSupport}·{@link KotlinGraphSupport} 가 맡고,
  * 여기서는 앱 고유의 것만 더한다: 외부에 열린 컴포넌트와 JS 브리지(진입점), 플랫폼 위험 지점 규칙(AppScan),
  * 아무 인증서나 믿는 TLS 구현, 줄 단위·설정 위험 지점.
  */
@@ -42,25 +47,33 @@ public class CodeGraphBuilder {
     private static final Map<String, Object> CODE = Map.of("detector", "code");
 
     private final JavaProject project;
+    private final KotlinProject kotlin;
+    private final KotlinGraphSupport kotlinSupport;
     private final AppScan scan;
     private final CodeGraphDraft draft = new CodeGraphDraft();
     private final JavaGraphSupport support;
     /** 모든 인증서·호스트를 믿는 프로젝트 클래스 → 그 위험 지점 노드 키 */
     private final Map<String, String> trustAllTypes = new HashMap<>();
 
-    public CodeGraphBuilder(JavaProject project, AppScan scan) {
+    public CodeGraphBuilder(JavaProject project, KotlinProject kotlin, AppScan scan) {
         this.project = project;
+        this.kotlin = kotlin;
         this.scan = scan;
         this.support = new JavaGraphSupport(project, draft, scan.knownReturnTypes());
+        this.kotlinSupport = new KotlinGraphSupport(kotlin, draft, scan.knownReturnTypes());
     }
 
     public CodeGraphDraft build() {
         project.types().forEach(support::addStructure);
+        kotlin.types().forEach(kotlinSupport::addStructure);
         project.types().forEach(support::addOverrides);
+        kotlin.types().forEach(kotlinSupport::addOverrides);
         project.types().forEach(this::addTrustAll);
         scan.components().forEach(this::addComponent);
         project.types().forEach(this::addBridges);
+        kotlin.types().forEach(this::addKotlinBridges);
         project.types().forEach(t -> t.methods().forEach(this::addCalls));
+        kotlin.types().forEach(t -> t.functions().forEach(f -> kotlinSupport.addCalls(f, scan::match, CODE)));
         scan.staticSinks().forEach(this::addStaticSink);
         maskSnippets();
         return draft;
@@ -103,16 +116,57 @@ public class CodeGraphBuilder {
                         .findFirst()
                         .ifPresent(handlers::addAll);
             }
-        } else {
-            props.put("source", "Java 소스 없음 (Kotlin 이거나 라이브러리 클래스). 호출 경로 없이 read_file·grep_code 로 볼 것");
         }
-        props.put("handlers", handlers.stream().map(MethodInfo::key).toList());
+        Optional<KotlinType> kotlinType = type.isPresent() ? Optional.empty() : kotlin.type(component.className());
+        List<KotlinFunction> kotlinHandlers = new ArrayList<>();
+        if (kotlinType.isPresent()) {
+            List<KotlinType> lineage = new ArrayList<>();
+            lineage.add(kotlinType.get());
+            lineage.addAll(kotlin.ancestors(kotlinType.get()));
+            for (String name : component.handlerMethods()) {
+                lineage.stream()
+                        .map(t -> t.functions().stream().filter(f -> f.name().equals(name)).toList())
+                        .filter(found -> !found.isEmpty())
+                        .findFirst()
+                        .ifPresent(kotlinHandlers::addAll);
+            }
+        } else if (type.isEmpty()) {
+            props.put("source", "앱 소스에 클래스가 없음 (라이브러리 클래스이거나 Kotlin 파서를 쓸 수 없음). 호출 경로 없이 read_file·grep_code 로 볼 것");
+        }
+        List<String> handlerKeys = new ArrayList<>(handlers.stream().map(MethodInfo::key).toList());
+        kotlinHandlers.forEach(f -> handlerKeys.add(f.key()));
+        props.put("handlers", handlerKeys);
 
-        String entryKey = type
-                .map(t -> draft.addNode(JavaGraphSupport.node(CodeNodeKind.ENTRY_POINT, component.label(), t.filePath(), t.decl(), props)))
-                .orElseGet(() -> draft.addNode(new NodeDraft(CodeNodeKind.ENTRY_POINT, component.label(), component.declaredIn(),
-                        component.line(), component.line(), props)));
+        String entryKey;
+        if (type.isPresent()) {
+            entryKey = draft.addNode(JavaGraphSupport.node(CodeNodeKind.ENTRY_POINT, component.label(), type.get().filePath(),
+                    type.get().decl(), props));
+        } else if (kotlinType.isPresent()) {
+            entryKey = draft.addNode(new NodeDraft(CodeNodeKind.ENTRY_POINT, component.label(), kotlinType.get().filePath(),
+                    kotlinType.get().startLine(), kotlinType.get().endLine(), props));
+        } else {
+            entryKey = draft.addNode(new NodeDraft(CodeNodeKind.ENTRY_POINT, component.label(), component.declaredIn(),
+                    component.line(), component.line(), props));
+        }
         handlers.forEach(h -> draft.addEdge(entryKey, JavaGraphSupport.methodKey(h), CodeEdgeKind.ROUTES_TO));
+        kotlinHandlers.forEach(f -> draft.addEdge(entryKey, KotlinGraphSupport.methodKey(f), CodeEdgeKind.ROUTES_TO));
+    }
+
+    /** Kotlin 의 @JavascriptInterface 함수 */
+    private void addKotlinBridges(KotlinType type) {
+        for (KotlinFunction function : type.functions()) {
+            if (function.annotations().stream().noneMatch(a -> scan.bridgeAnnotations().contains(a)
+                    || scan.bridgeAnnotations().stream().anyMatch(b -> b.endsWith("." + a)))) {
+                continue;
+            }
+            Map<String, Object> props = new LinkedHashMap<>();
+            props.put("kind", "JS_BRIDGE");
+            props.put("component", type.fqn());
+            props.put("handlers", List.of(function.key()));
+            String entryKey = draft.addNode(new NodeDraft(CodeNodeKind.ENTRY_POINT, "JS_BRIDGE " + function.key(), type.filePath(),
+                    function.startLine(), function.endLine(), props));
+            draft.addEdge(entryKey, KotlinGraphSupport.methodKey(function), CodeEdgeKind.ROUTES_TO);
+        }
     }
 
     /** @JavascriptInterface 메서드: WebView 에 띄운 웹 페이지의 자바스크립트가 부를 수 있다 */
@@ -242,10 +296,14 @@ public class CodeGraphBuilder {
         props.put("detector", sink.detector());
 
         Optional<MethodInfo> method = sink.filePath().endsWith(".java") ? methodAt(sink.filePath(), sink.line()) : Optional.empty();
+        Optional<KotlinFunction> function = sink.filePath().endsWith(".kt") ? kotlinFunctionAt(sink.filePath(), sink.line()) : Optional.empty();
         String parentKey;
         if (method.isPresent()) {
             props.put("method", method.get().key());
             parentKey = JavaGraphSupport.methodKey(method.get());
+        } else if (function.isPresent()) {
+            props.put("method", function.get().key());
+            parentKey = KotlinGraphSupport.methodKey(function.get());
         } else {
             String fileName = sink.filePath().substring(sink.filePath().lastIndexOf('/') + 1);
             props.put("method", fileName);
@@ -254,7 +312,15 @@ public class CodeGraphBuilder {
         String sinkKey = draft.addNode(new NodeDraft(CodeNodeKind.SINK,
                 sink.filePath() + "@L" + sink.line() + ":" + sink.column() + " " + sink.api(),
                 sink.filePath(), sink.line(), sink.line(), props));
-        draft.addEdge(parentKey, sinkKey, method.isPresent() ? CodeEdgeKind.CALLS : CodeEdgeKind.CONTAINS);
+        draft.addEdge(parentKey, sinkKey, method.isPresent() || function.isPresent() ? CodeEdgeKind.CALLS : CodeEdgeKind.CONTAINS);
+    }
+
+    private Optional<KotlinFunction> kotlinFunctionAt(String filePath, int line) {
+        return kotlin.types().stream()
+                .filter(t -> t.filePath().equals(filePath))
+                .flatMap(t -> t.functions().stream())
+                .filter(f -> f.startLine() <= line && f.endLine() >= line)
+                .min((a, b) -> Integer.compare(a.endLine() - a.startLine(), b.endLine() - b.startLine()));
     }
 
     private Optional<MethodInfo> methodAt(String filePath, int line) {

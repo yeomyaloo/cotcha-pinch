@@ -70,25 +70,19 @@ public final class AndroidRules {
 
     private static final String SENSITIVE = "(?i:token|password|passwd|secret|session|jwt|api_?key|credential|pin_?code|otp)";
 
-    public static final List<LineRule> LINE_RULES = lineRules();
-
-    private static List<LineRule> lineRules() {
-        List<LineRule> rules = new ArrayList<>(List.of(
-            // Kotlin: Java 규칙과 같은 것을 줄 단위로
+    /**
+     * Kotlin 호출 규칙을 줄 단위로 흉내 낸 것. Kotlin 파서(tree-sitter)를 쓸 수 있으면 코드 그래프가 JAVA_RULES 로 같은 호출을
+     * 경로와 함께 찾으므로, 파서를 불러오지 못한 OS/CPU 에서만 쓴다.
+     */
+    public static final List<LineRule> KOTLIN_CALL_FALLBACK = List.of(
             LineRule.of("SQL", "CWE-89", "SQLiteDatabase.rawQuery / execSQL", "\\.(?:rawQuery|rawQueryWithFactory|execSQL)\\s*\\(", KT),
             LineRule.of("COMMAND", "CWE-78", "Runtime.exec / ProcessBuilder", "Runtime\\.getRuntime\\(\\)\\.exec\\s*\\(|\\bProcessBuilder\\s*\\(", KT),
             LineRule.of("CODE_LOADING", "CWE-94", "동적 코드 로딩 (DexClassLoader 등)", "\\b(?:DexClassLoader|PathClassLoader|InMemoryDexClassLoader)\\s*\\(", KT),
             LineRule.of("DESERIALIZATION", "CWE-502", "Serializable 역직렬화", "\\bgetSerializable(?:Extra)?\\s*[(<]|\\bObjectInputStream\\s*\\(", KT),
             LineRule.of("WEBVIEW", "CWE-749", "WebView.addJavascriptInterface", "\\.addJavascriptInterface\\s*\\(", KT),
-            LineRule.of("WEBVIEW", "CWE-749", "WebView 파일 URL 접근 허용",
-                    "allow(?:Universal|File)AccessFromFileURLs\\s*=\\s*true|setAllow(?:Universal|File)AccessFromFileURLs\\s*\\(\\s*true", KT),
             LineRule.of("WEBVIEW", "CWE-79", "WebView.loadUrl / loadData / evaluateJavascript",
                     "\\.(?:loadUrl|loadData|loadDataWithBaseURL|postUrl|evaluateJavascript)\\s*\\(", KT),
             LineRule.of("TLS", "CWE-295", "SslErrorHandler.proceed (인증서 오류 무시)", "\\.proceed\\s*\\(\\s*\\)", KT),
-            LineRule.of("TLS", "CWE-295", "모든 호스트 이름 허용",
-                    "ALLOW_ALL_HOSTNAME_VERIFIER|(?:hostnameVerifier|HostnameVerifier)\\s*\\{\\s*_\\s*,\\s*_\\s*->\\s*true", KT),
-            LineRule.of("TLS", "CWE-295", "X509TrustManager.checkServerTrusted 비어 있음 (모든 인증서 허용)",
-                    "fun\\s+checkServerTrusted\\s*\\([^)]*\\)\\s*(?:\\{\\s*}|=\\s*Unit|\\{\\s*$)", KT),
             LineRule.of("INTENT", "CWE-940", "Intent.getParcelableExtra (받은 Intent 를 다시 띄우면 리다이렉션)", "\\bgetParcelableExtra\\s*[(<]", KT),
             LineRule.of("INTENT", "CWE-927", "PendingIntent 생성",
                     "PendingIntent\\.get(?:Activity|Activities|Broadcast|Service|ForegroundService)\\s*\\(", KT),
@@ -97,7 +91,19 @@ public final class AndroidRules {
             LineRule.of("WEAK_CRYPTO", "CWE-327", "약한 암호 (DES, RC4, ECB)",
                     "Cipher\\.getInstance\\s*\\(\\s*\"(?i:DES|DESede|RC4|RC2|Blowfish|AES\"|AES/ECB|[^\"]*/ECB/)", KT),
             LineRule.of("WEAK_CRYPTO", "CWE-321", "하드코딩된 암호 키 (SecretKeySpec)", "\\bSecretKeySpec\\s*\\(\\s*\"", KT),
-            LineRule.of("WEAK_RANDOM", "CWE-330", "java.util.Random", "\\bjava\\.util\\.Random\\s*\\(|(?<![\\w.])Random\\s*\\(", KT),
+            LineRule.of("WEAK_RANDOM", "CWE-330", "java.util.Random", "\\bjava\\.util\\.Random\\s*\\(|(?<![\\w.])Random\\s*\\(", KT));
+
+    /** 줄 단위 규칙: 호출 하나로는 보이지 않는 설정 대입·람다·저장·로그·비밀값 (Kotlin·Java) */
+    public static final List<LineRule> LINE_RULES = lineRules();
+
+    private static List<LineRule> lineRules() {
+        List<LineRule> rules = new ArrayList<>(List.of(
+            LineRule.of("WEBVIEW", "CWE-749", "WebView 파일 URL 접근 허용",
+                    "allow(?:Universal|File)AccessFromFileURLs\\s*=\\s*true|setAllow(?:Universal|File)AccessFromFileURLs\\s*\\(\\s*true", KT),
+            LineRule.of("TLS", "CWE-295", "모든 호스트 이름 허용",
+                    "ALLOW_ALL_HOSTNAME_VERIFIER|(?:hostnameVerifier|HostnameVerifier)\\s*\\{\\s*_\\s*,\\s*_\\s*->\\s*true", KT),
+            LineRule.of("TLS", "CWE-295", "X509TrustManager.checkServerTrusted 비어 있음 (모든 인증서 허용)",
+                    "fun\\s+checkServerTrusted\\s*\\([^)]*\\)\\s*(?:\\{\\s*}|=\\s*Unit|\\{\\s*$)", KT),
             // Kotlin·Java 모두: 호출 하나로 잡기 어려운 저장·로그 문제
             LineRule.of("STORAGE", "CWE-312", "SharedPreferences 에 민감 정보 저장",
                     "\\.put(?:String|StringSet)\\s*\\(\\s*\"[^\"]*" + SENSITIVE, CODE),

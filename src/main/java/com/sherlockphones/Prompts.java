@@ -34,7 +34,7 @@ final class Prompts {
                 ## 1. 준비
                 %s
                 이어서 check_config(매니페스트·네트워크 보안 설정), list_components(외부에 열린 입구), list_sink_paths(입구 → 위험 지점 경로),
-                list_sinks(detector=line: Kotlin 등 줄 단위 후보), check_dependencies(알려진 CVE)를 봅니다.
+                list_sinks(detector=line: 설정 대입·저장·로그·비밀값 같은 줄 단위 후보), check_dependencies(알려진 CVE)를 봅니다.
                 위험한 것부터 최대 %s개 항목을 고릅니다: COMMAND·CODE_LOADING·SQL·DESERIALIZATION·WEBVIEW·TLS·INTENT 경로가 먼저,
                 그다음 EXPORTED·PATH·CLEARTEXT·HARDCODED_SECRET·STORAGE·LOGGING, 마지막으로 DEBUGGABLE·BACKUP·WEAK_CRYPTO·WEAK_RANDOM.
                 같은 컴포넌트·파일의 것은 한 항목으로 묶습니다.
@@ -49,7 +49,7 @@ final class Prompts {
                 - 막는 장치를 반드시 찾습니다: exported=false, signature 수준 권한(protectionLevel), checkCallingPermission·getCallingPackage,
                   selectionArgs(?) 바인딩, 경로 정규화(getCanonicalPath)와 기준 폴더 확인, URL·호스트 허용 목록, Intent 의 대상 컴포넌트 확인,
                   FLAG_IMMUTABLE, EncryptedSharedPreferences·Keystore, 릴리스 빌드에서만 쓰는 설정(buildTypes).
-                - Kotlin·줄 규칙 후보는 경로가 없으니 파일을 직접 읽고 입력 출처를 확인합니다.
+                - 줄 규칙 후보는 경로가 없을 수 있으니 파일을 직접 읽고 입력 출처를 확인합니다.
                 - WebView 는 setJavaScriptEnabled, addJavascriptInterface 로 노출한 메서드, 띄우는 URL 의 출처를 함께 봅니다.
                 - 약한 암호화·난수는 토큰·비밀번호·암호화 키처럼 보안에 쓰일 때만, 로그·저장은 실제로 민감한 값일 때만 취약합니다.
                 - 설정 문제(debuggable, allowBackup, 평문 HTTP, 사용자 인증서 신뢰)는 배포 빌드에 들어가는지(src/main, buildTypes)와 영향을 확인합니다.

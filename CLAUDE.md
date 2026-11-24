@@ -1,6 +1,6 @@
 # Sherlock Phones
 
-Android(다음 단계 iOS) 앱 소스코드의 보안 취약점을 찾는 Claude Code 플러그인 + stdio MCP 서버. Claude가 판단하고, 서버는 앱 불러오기·설정 검사·코드 그래프·파일 읽기·발견 기록·보고서를 맡는다. Java 파싱·구조·호출 연결은 공용 엔진 core-code-agent(`../core-code-agent`, `com.codeagent:core-code-agent`)의 `JavaGraphSupport` 를 쓴다. GitHub 저장소 이름은 `sherlock-phones`(로컬 폴더 이름은 phonetective).
+Android(다음 단계 iOS) 앱 소스코드의 보안 취약점을 찾는 Claude Code 플러그인 + stdio MCP 서버. Claude가 판단하고, 서버는 앱 불러오기·설정 검사·코드 그래프·파일 읽기·발견 기록·보고서를 맡는다. Java·Kotlin 파싱·구조·호출 연결은 Cotcha 공용 엔진 cotcha-trail(로컬 `../core-code-agent`, 좌표 `com.codeagent:core-code-agent`)의 `JavaGraphSupport`·`KotlinGraphSupport` 를 쓴다. GitHub 저장소 이름은 `sherlock-phones`(로컬 폴더 이름은 phonetective).
 
 ## 명령
 
@@ -12,7 +12,7 @@ claude plugin validate .                    # 플러그인 구조 검사 (CLAUDE
 ```
 
 - Windows PowerShell에서는 `.\gradlew.bat`.
-- core 는 GitHub Packages 에서 받는다(토큰 필요). 토큰이 없거나 core 를 같이 고칠 때는 `-PcoreCodeAgentDir=../core-code-agent`(PowerShell 에서는 따옴표로 감싼다). core 를 바꾸면 거기서 버전을 올리고 `v{version}` 태그로 배포한 뒤 `build.gradle` 의존 버전을 올린다.
+- core 는 GitHub Packages(maven.pkg.github.com/yeomyaloo/cotcha-trail)에서 받는다(토큰 필요). Kotlin 파서(tree-sitter 네이티브)를 못 쓰는 OS/CPU 에서는 `AndroidRules.KOTLIN_CALL_FALLBACK` 줄 규칙으로 대신한다. 토큰이 없거나 core 를 같이 고칠 때는 `-PcoreCodeAgentDir=../core-code-agent`(PowerShell 에서는 따옴표로 감싼다). core 를 바꾸면 거기서 버전을 올리고 `v{version}` 태그로 배포한 뒤 `build.gradle` 의존 버전을 올린다.
 - 빌드는 JDK 21 toolchain, 바이트코드는 `release 17`. Java 21 전용 API(`getFirst` 등)를 쓰지 않는다.
 
 ## 구조

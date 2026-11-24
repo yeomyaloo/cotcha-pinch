@@ -229,7 +229,7 @@
       "file": "app/src/main/java/com/example/bank/search/PayeeSearchActivity.kt",
       "lines": [12, 24],
       "sinkLine": 22,
-      "entryPoint": null,
+      "entryPoint": "ACTIVITY com.example.bank.search.PayeeSearchActivity",
       "attacker": "link",
       "why": "딥링크 bank://payees?q= 값을 SQL 문자열 템플릿에 넣는다"
     },

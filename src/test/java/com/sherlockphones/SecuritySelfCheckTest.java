@@ -59,7 +59,9 @@ class SecuritySelfCheckTest {
         write(workspace.resolve("src/main/java/com/example/Crypto.kt"), """
                 package com.example
 
-                val spec = SecretKeySpec("kotlin-secret-value-1".toByteArray(), "AES")
+                import javax.crypto.spec.SecretKeySpec
+
+                fun spec() = SecretKeySpec("kotlin-secret-value-1".toByteArray(), "AES")
                 """);
 
         AndroidApp android = AndroidScanner.scan(workspace);
