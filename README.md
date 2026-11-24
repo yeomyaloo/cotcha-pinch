@@ -36,7 +36,7 @@ It is the mobile sibling of [cotcha-pocket](https://github.com/yeomyaloo/cotcha-
 - **Reads source only.** It never builds, installs or runs the app, and needs no emulator or device.
 - **Fewer false alarms.** Pattern scanners flag every `WebView` and `rawQuery`. cotcha-pinch asks the next question: *can another app, a link, the network or someone holding the phone actually reach it?*
 
-> **Status:** Android works for Java and Kotlin, with call paths. iOS works with Info.plist / entitlements checks and Swift / Objective-C line rules; Swift and Objective-C code is parsed too, so URL schemes, universal links and `WKScriptMessageHandler` bridges get call paths to the sinks. See [Progress](#progress).
+> **Status:** Android works for Java and Kotlin, with call paths. iOS works with Info.plist / entitlements checks and Swift / Objective-C line rules; Swift and Objective-C code is parsed too, and calls between the two are linked, so URL schemes, universal links and `WKScriptMessageHandler` bridges get call paths to the sinks. See [Progress](#progress).
 
 ## How it works
 
@@ -149,7 +149,8 @@ Settings (environment variables): `SHERLOCK_PHONES_HOME` (default `~/.sherlock-p
 | 2 | iOS: Info.plist (ATS, file sharing, URL schemes) and entitlements (get-task-allow, universal links) checks, Swift and Objective-C line rules, `bank-ios` benchmark app (15 vulnerabilities, 6 traps) | ✅ Done |
 | 3 | Swift parsing with cotcha-trail 0.5.0 (tree-sitter): URL scheme / universal link / `WKScriptMessageHandler` entry points with call paths | ✅ Done |
 | 3-2 | Objective-C parsing with cotcha-trail 0.6.0: URL handlers and `WKScriptMessageHandler` bridges in `.m` files with call paths, Objective-C WebView message rules | ✅ Done |
-| 3-3 | Java ↔ Kotlin and Swift ↔ Objective-C call links | ⏳ Planned |
+| 3-3 | Swift ↔ Objective-C call links (cotcha-trail 0.7.0 `SwiftObjcInterop`): a Swift URL handler → Objective-C class → Swift class → sink is one path | ✅ Done |
+| 3-4 | Java ↔ Kotlin call links | ⏳ Planned |
 | 4 | CocoaPods and SwiftPM dependencies | ⏳ Planned |
 
 ## Development
@@ -213,7 +214,7 @@ Use cotcha-pinch only on apps you own or are authorized to test. Automated findi
 - **소스만 읽어요.** 앱을 빌드하거나 설치하거나 실행하지 않아요. 에뮬레이터나 실제 기기도 필요 없어요.
 - **헛경보가 적어요.** 패턴 검사기는 `WebView`, `rawQuery`만 보이면 다 경고해요. cotcha-pinch는 한 걸음 더 물어요. *다른 앱, 링크, 네트워크, 폰을 손에 쥔 사람이 정말 거기까지 닿을 수 있나?*
 
-> **상태:** 안드로이드는 Java와 Kotlin 모두 호출 경로까지 봐요. iOS는 Info.plist·entitlements 검사와 Swift·Objective-C 줄 단위 규칙으로 봐요(Swift·Objective-C 코드도 파싱해서 URL 스킴·유니버설 링크·`WKScriptMessageHandler` 브리지에서 위험 지점까지 호출 경로를 봐요. Objective-C 도 마찬가지예요). [진행 상황](#진행-상황)을 보세요.
+> **상태:** 안드로이드는 Java와 Kotlin 모두 호출 경로까지 봐요. iOS는 Info.plist·entitlements 검사와 Swift·Objective-C 줄 단위 규칙으로 봐요(Swift·Objective-C 코드도 파싱해서 URL 스킴·유니버설 링크·`WKScriptMessageHandler` 브리지에서 위험 지점까지 호출 경로를 봐요. Objective-C 도 마찬가지고, 두 언어 사이 호출도 이어요). [진행 상황](#진행-상황)을 보세요.
 
 ## 동작 방식
 
@@ -331,7 +332,8 @@ Claude가 앱을 불러와 번호 붙은 계획(컴포넌트나 파일, 분류·
 | 2 | iOS: Info.plist(ATS, 파일 공유, URL 스킴)·entitlements(get-task-allow, 유니버설 링크) 검사, Swift·Objective-C 줄 단위 규칙, `bank-ios` 벤치마크 앱(취약점 15개, 함정 6개) | ✅ 완료 |
 | 3 | cotcha-trail 0.5.0 의 Swift 파서(tree-sitter): URL 스킴·유니버설 링크·`WKScriptMessageHandler` 입구에서 호출 경로 | ✅ 완료 |
 | 3-2 | cotcha-trail 0.6.0 의 Objective-C 파서: `.m` 의 URL 처리 메서드·`WKScriptMessageHandler` 브리지에서 호출 경로, Objective-C WebView 메시지 규칙 | ✅ 완료 |
-| 3-3 | Java ↔ Kotlin, Swift ↔ Objective-C 호출 연결 | ⏳ 예정 |
+| 3-3 | Swift ↔ Objective-C 호출 연결 (cotcha-trail 0.7.0 `SwiftObjcInterop`): Swift URL 처리 함수 → Objective-C 클래스 → Swift 클래스 → 위험 지점이 경로 하나로 이어짐 | ✅ 완료 |
+| 3-4 | Java ↔ Kotlin 호출 연결 | ⏳ 예정 |
 | 4 | CocoaPods·SwiftPM 라이브러리 검사 | ⏳ 예정 |
 
 ## 개발

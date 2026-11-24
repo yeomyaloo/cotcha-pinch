@@ -112,6 +112,59 @@ class IosTest {
     }
 
     @Test
+    void Swift_와_Objective_C_를_오가는_호출_경로를_잇는다() throws IOException {
+        Path root = home.resolve("mixed-app");
+        Files.createDirectories(root.resolve("Mixed"));
+        Files.writeString(root.resolve("Mixed/Info.plist"), """
+                <?xml version="1.0" encoding="UTF-8"?>
+                <plist version="1.0"><dict>
+                <key>CFBundleURLTypes</key><array><dict><key>CFBundleURLSchemes</key><array><string>mixed</string></array></dict></array>
+                </dict></plist>
+                """);
+        Files.writeString(root.resolve("Mixed/AppDelegate.swift"), """
+                import UIKit
+
+                class AppDelegate: UIResponder, UIApplicationDelegate {
+                    func application(_ app: UIApplication, open url: URL, options: [UIApplication.OpenURLOptionsKey: Any] = [:]) -> Bool {
+                        LegacyStore.shared().removePayee(url.query ?? "")
+                        return true
+                    }
+                }
+
+                @objc class Audit: NSObject {
+                    @objc func record(entry value: String) {
+                        let db = OpaquePointer(bitPattern: 1)
+                        sqlite3_exec(db, "INSERT INTO audit VALUES ('" + value + "')", nil, nil, nil)
+                    }
+                }
+                """);
+        Files.writeString(root.resolve("Mixed/LegacyStore.h"), """
+                @interface LegacyStore : NSObject
+                + (instancetype)shared;
+                - (void)removePayee:(NSString *)name;
+                @end
+                """);
+        Files.writeString(root.resolve("Mixed/LegacyStore.m"), """
+                #import "LegacyStore.h"
+                #import "Mixed-Swift.h"
+
+                @implementation LegacyStore
+                + (instancetype)shared { static LegacyStore *s; return s; }
+                - (void)removePayee:(NSString *)name {
+                    [[[Audit alloc] init] recordWithEntry:name];
+                }
+                @end
+                """);
+        SherlockTools tools = tools();
+        call(tools, "load_app", Map.of("path", root.toString()));
+
+        // Swift 처리 함수 → Objective-C 메서드 → Swift 함수 → 위험 지점
+        assertThat(call(tools, "list_sink_paths", Map.of("app", "mixed-app")))
+                .contains("URL_SCHEME mixed://  →  [SQL CWE-89]",
+                        "AppDelegate#application(_:open:options:)", "LegacyStore#removePayee:", "Audit#record(entry:)");
+    }
+
+    @Test
     void 내부_선언이_있는_plist_는_읽지_않는다() throws IOException {
         Path root = home.resolve("evil");
         Files.createDirectories(root.resolve("App"));
