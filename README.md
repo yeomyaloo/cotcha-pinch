@@ -1,6 +1,8 @@
 <p align="center">
-  <img src="docs/images/logo-wordmark.svg" alt="Phonetective" width="560">
+  <img src="docs/images/logo-wordmark.svg" alt="Sherlock Phones" width="600">
 </p>
+
+<p align="center"><i>"Elementary, my dear app."</i></p>
 
 <p align="center"><b>A pocket detective that sniffs out security bugs in Android and iOS app source code (Claude Code plugin + MCP server)</b></p>
 
@@ -12,21 +14,21 @@
 
 [English](#english) · [한국어](#한국어)
 
-> 🚧 **Design stage.** This README describes what Phonetective will do. Nothing below is usable yet; see [Progress](#progress).
+> 🚧 **Design stage.** This README describes what Sherlock Phones will do. Nothing below is usable yet; see [Progress](#progress).
 
 <a id="english"></a>
 
-*Phonetective* = **phone** + de**tective**. Point it at your app's source folder in Claude Code and say *"audit this app"*. Claude walks the app's **attack surface → dangerous code** paths, reads the real code, records only what it can show is exploitable, then switches sides and re-checks every finding before writing a report mapped to the **OWASP Mobile Top 10** and **MASVS**.
+*Sherlock Phones* = Sherlock Holmes, but for **phones**. Point it at your app's source folder in Claude Code and say *"audit this app"*. Claude walks the app's **attack surface → dangerous code** paths, reads the real code, records only what it can show is exploitable, then switches sides and re-checks every finding before writing a report mapped to the **OWASP Mobile Top 10** and **MASVS**.
 
 It is the mobile sibling of [mcp-code-agent](https://github.com/yeomyaloo/mcp-code-agent) (Java/Spring servers) and reuses its idea: **Claude is the brain, the MCP server is the hands.**
 
 - **Runs on your Claude Code login.** No separate API key, no database, no server to host. Only Java 17+.
 - **Reads source only.** It never builds, installs or runs the app, and needs no Mac, emulator or device.
-- **Fewer false alarms.** Pattern scanners flag every `WebView` and `rawQuery`. Phonetective asks the next question: *can another app, a link, the network or someone holding the phone actually reach it?*
+- **Fewer false alarms.** Pattern scanners flag every `WebView` and `rawQuery`. Sherlock Phones asks the next question: *can another app, a link, the network or someone holding the phone actually reach it?*
 
 ## How it works
 
-![Phonetective architecture](docs/images/architecture.svg)
+![Sherlock Phones architecture](docs/images/architecture.svg)
 
 1. **Load the app** from a folder or a public Git URL; the platform is detected from `AndroidManifest.xml` / `build.gradle` or `Info.plist` / `*.xcodeproj` / `Podfile`.
 2. **Config checks** that need no parser: manifest flags, network security config, App Transport Security exceptions, URL schemes, entitlements.
@@ -67,7 +69,7 @@ Not in scope: compiled APK/IPA analysis, runtime instrumentation (Frida), binary
 | `check_config` | Manifest, network security config, Info.plist and entitlements findings |
 | `check_dependencies` | Libraries with known vulnerabilities (OSV) |
 | `read_file` · `grep_code` · `get_callers` · `get_callees` | Read code inside the app folder only |
-| `record_finding` · `list_findings` · `submit_verdict` · `clear_findings` | Findings and verifier verdicts (`~/.phonetective/findings/<app>.json`) |
+| `record_finding` · `list_findings` · `submit_verdict` · `clear_findings` | Findings and verifier verdicts (`~/.sherlock-phones/findings/<app>.json`) |
 | `export_report` | Markdown or SARIF |
 
 ## Progress
@@ -93,7 +95,7 @@ Not in scope: compiled APK/IPA analysis, runtime instrumentation (Frida), binary
 
 ## Disclaimer
 
-Use Phonetective only on apps you own or are authorized to test. Automated findings can be wrong in both directions; a clean report is not proof that an app is secure.
+Use Sherlock Phones only on apps you own or are authorized to test. Automated findings can be wrong in both directions; a clean report is not proof that an app is secure.
 
 ---
 
@@ -101,19 +103,19 @@ Use Phonetective only on apps you own or are authorized to test. Automated findi
 
 # 한국어
 
-*Phonetective* = **phone**(폰) + de**tective**(탐정). 폰 탐정이에요. Claude Code에서 앱 소스 폴더를 주고 *"이 앱 보안 검사해줘"*라고 하면, Claude가 앱의 **공격 입구 → 위험한 코드** 경로를 따라가며 실제 코드를 읽어요. 공격 가능함을 코드로 보여줄 수 있는 것만 기록하고, 입장을 바꿔 발견마다 다시 확인한 뒤 **OWASP Mobile Top 10**과 **MASVS** 기준으로 보고서를 써요.
+*Sherlock Phones* = 셜록 **Holmes**에서 **Phones**(폰)로. 폰을 조사하는 셜록이에요. Claude Code에서 앱 소스 폴더를 주고 *"이 앱 보안 검사해줘"*라고 하면, Claude가 앱의 **공격 입구 → 위험한 코드** 경로를 따라가며 실제 코드를 읽어요. 공격 가능함을 코드로 보여줄 수 있는 것만 기록하고, 입장을 바꿔 발견마다 다시 확인한 뒤 **OWASP Mobile Top 10**과 **MASVS** 기준으로 보고서를 써요.
 
 [mcp-code-agent](https://github.com/yeomyaloo/mcp-code-agent)(Java/Spring 서버용)의 모바일 버전이고, 같은 생각을 이어받았어요. **Claude는 두뇌, MCP 서버는 손발**이에요.
 
-> 🚧 **설계 단계예요.** 이 README는 Phonetective가 할 일을 설명해요. 아직 쓸 수 있는 기능은 없어요. [진행 상황](#진행-상황)을 보세요.
+> 🚧 **설계 단계예요.** 이 README는 Sherlock Phones가 할 일을 설명해요. 아직 쓸 수 있는 기능은 없어요. [진행 상황](#진행-상황)을 보세요.
 
 - **Claude Code 로그인으로 돌아요.** 따로 넣을 API 키, DB, 띄울 서버가 없어요. Java 17 이상만 있으면 돼요.
 - **소스만 읽어요.** 앱을 빌드하거나 설치하거나 실행하지 않아요. Mac, 에뮬레이터, 실제 기기도 필요 없어요.
-- **헛경보가 적어요.** 패턴 검사기는 `WebView`, `rawQuery`만 보이면 다 경고해요. Phonetective는 한 걸음 더 물어요. *다른 앱, 링크, 네트워크, 폰을 손에 쥔 사람이 정말 거기까지 닿을 수 있나?*
+- **헛경보가 적어요.** 패턴 검사기는 `WebView`, `rawQuery`만 보이면 다 경고해요. Sherlock Phones는 한 걸음 더 물어요. *다른 앱, 링크, 네트워크, 폰을 손에 쥔 사람이 정말 거기까지 닿을 수 있나?*
 
 ## 동작 방식
 
-![Phonetective 구조](docs/images/architecture.svg)
+![Sherlock Phones 구조](docs/images/architecture.svg)
 
 1. **앱 불러오기**: 폴더나 공개 Git 주소를 받아요. 플랫폼은 `AndroidManifest.xml`·`build.gradle`, 또는 `Info.plist`·`*.xcodeproj`·`Podfile`로 알아내요.
 2. **설정 검사**: 파서 없이 바로 돼요. 매니페스트 속성, 네트워크 보안 설정, ATS(App Transport Security) 예외, URL 스킴, entitlements.
@@ -159,7 +161,7 @@ Use Phonetective only on apps you own or are authorized to test. Automated findi
 | `check_config` | 매니페스트, 네트워크 보안 설정, Info.plist, entitlements 검사 결과 |
 | `check_dependencies` | 알려진 취약점(OSV)이 있는 라이브러리 |
 | `read_file` · `grep_code` · `get_callers` · `get_callees` | 앱 폴더 안의 코드만 읽는다 |
-| `record_finding` · `list_findings` · `submit_verdict` · `clear_findings` | 발견과 검증 판정 (`~/.phonetective/findings/<app>.json`) |
+| `record_finding` · `list_findings` · `submit_verdict` · `clear_findings` | 발견과 검증 판정 (`~/.sherlock-phones/findings/<app>.json`) |
 | `export_report` | Markdown 또는 SARIF |
 
 ## 진행 상황

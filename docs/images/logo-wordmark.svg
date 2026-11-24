@@ -1,5 +1,5 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 200" width="720" height="200" role="img" aria-labelledby="t">
-  <title id="t">Phonetective: a pocket detective for mobile app security</title>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 750 200" width="750" height="200" role="img" aria-labelledby="t">
+  <title id="t">Sherlock Phones: elementary, my dear app · mobile app security</title>
   <g transform="translate(8 8) scale(0.72)">
     <rect x="68" y="76" width="120" height="164" rx="26" fill="#4F46E5"/>
     <rect x="68" y="76" width="120" height="164" rx="26" fill="none" stroke="#3730A3" stroke-width="4"/>
@@ -26,6 +26,6 @@
     <path d="M177 182 L173 176 M183 182 L187 176" stroke="#7F1D1D" stroke-width="2" stroke-linecap="round"/>
     <circle cx="170" cy="187" r="6" fill="#FFFFFF" opacity="0.55"/>
   </g>
-  <text x="212" y="112" font-family="'Trebuchet MS', 'Segoe UI', Verdana, sans-serif" font-size="68" font-weight="700" letter-spacing="-1"><tspan fill="#6366F1">Phone</tspan><tspan fill="#F59E0B">tective</tspan></text>
-  <text x="216" y="150" font-family="'Segoe UI', Verdana, sans-serif" font-size="22" fill="#94A3B8">a pocket detective for mobile app security</text>
+  <text x="212" y="112" font-family="'Trebuchet MS', 'Segoe UI', Verdana, sans-serif" font-size="68" font-weight="700" letter-spacing="-1"><tspan fill="#6366F1">Sherlock</tspan> <tspan fill="#F59E0B">Phones</tspan></text>
+  <text x="216" y="150" font-family="'Segoe UI', Verdana, sans-serif" font-size="22" fill="#94A3B8">elementary, my dear app · mobile app security</text>
 </svg>

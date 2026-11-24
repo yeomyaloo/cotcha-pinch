@@ -1,5 +1,5 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 700" width="960" height="700" role="img" aria-labelledby="t">
-  <title id="t">Phonetective architecture</title>
+  <title id="t">Sherlock Phones architecture</title>
   <defs>
     <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
       <path d="M0 0 L10 5 L0 10 Z" fill="#475569"/>
@@ -44,9 +44,9 @@
 
   <!-- 손발: MCP 서버 -->
   <rect x="30" y="200" width="900" height="330" rx="14" fill="#FFFBEB" stroke="#F59E0B" stroke-width="2"/>
-  <rect x="48" y="214" width="210" height="24" rx="12" fill="#D97706"/>
-  <text x="62" y="231" class="tag">HANDS · phonetective MCP</text>
-  <text x="274" y="232" class="note">reads source only, never builds or runs the app</text>
+  <rect x="48" y="214" width="236" height="24" rx="12" fill="#D97706"/>
+  <text x="62" y="231" class="tag">HANDS · sherlock-phones MCP</text>
+  <text x="300" y="232" class="note">reads source only, never builds or runs the app</text>
 
   <rect x="48" y="252" width="200" height="176" rx="10" fill="#FFFFFF" stroke="#FCD34D"/>
   <text x="62" y="276" class="h">① load_app</text>
@@ -89,7 +89,7 @@
   <text x="62" y="492" class="xs">scoped to the app folder; secrets are masked in output</text>
   <rect x="488" y="444" width="424" height="68" rx="10" fill="#FFFFFF" stroke="#FCD34D"/>
   <text x="502" y="468" class="h">⑥ record_finding · submit_verdict</text>
-  <text x="502" y="492" class="xs">~/.phonetective/findings/&lt;app&gt;.json, with commit</text>
+  <text x="502" y="492" class="xs">~/.sherlock-phones/findings/&lt;app&gt;.json, with commit</text>
 
   <!-- 결과 -->
   <line x1="480" y1="530" x2="480" y2="566" stroke="#475569" stroke-width="2" marker-end="url(#arrow)"/>

@@ -1,5 +1,5 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 520" width="960" height="520" role="img" aria-labelledby="t">
-  <title id="t">Who attacks a mobile app, and what Phonetective checks</title>
+  <title id="t">Who attacks a mobile app, and what Sherlock Phones checks</title>
   <defs>
     <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto">
       <path d="M0 0 L10 5 L0 10 Z" fill="#DC2626"/>
@@ -22,7 +22,7 @@
   <text x="480" y="256" class="xs" text-anchor="middle">local DB · files · prefs</text>
   <text x="480" y="274" class="xs" text-anchor="middle">Keychain / Keystore</text>
   <text x="480" y="292" class="xs" text-anchor="middle">network client</text>
-  <text x="480" y="322" class="s" text-anchor="middle">🔍 Phonetective</text>
+  <text x="480" y="322" class="s" text-anchor="middle">🔍 Sherlock Phones</text>
 
   <!-- 좌상: 다른 앱 -->
   <rect x="30" y="30" width="300" height="190" rx="14" fill="#FEF2F2" stroke="#FCA5A5" stroke-width="2"/>

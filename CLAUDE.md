@@ -1,4 +1,4 @@
-# Phonetective
+# Sherlock Phones
 
 Android·iOS 앱 소스코드의 보안 취약점을 찾는 Claude Code 플러그인 + stdio MCP 서버. Claude가 판단하고, 서버는 앱 불러오기·설정 검사·코드 그래프·파일 읽기·발견 기록·보고서를 맡는다. 서버용 형제 프로젝트 mcp-code-agent(`../mcp-code-agent`)의 구조를 따른다.
 
