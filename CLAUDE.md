@@ -17,9 +17,9 @@ claude plugin validate .                    # 플러그인 구조 검사 (CLAUDE
 
 ## 구조
 
-- `codegraph/`: 플랫폼 공통. core 위의 앱 그래프(`CodeGraphBuilder`: 컴포넌트·JS 브리지 진입점, 아무 인증서나 믿는 TLS, 줄·설정 위험 지점), 메모리 색인(`CodeGraph`), 줄 단위 스캐너(`LineScanner`, `LineRule`), 플랫폼이 넘기는 재료(`AppScan`: `Component`, `StaticSink`, Java 규칙, 알려진 반환 타입, 브리지 애너테이션), 분류 우선순위(`Categories`).
+- `codegraph/`: 플랫폼 공통. core 위의 앱 그래프(`CodeGraphBuilder`: 컴포넌트·JS 브리지(@JavascriptInterface, Swift `WKScriptMessageHandler`) 진입점, URL 스킴·유니버설 링크 → handlerLocations 를 감싼 Swift 함수, 아무 인증서나 믿는 TLS, 줄·설정 위험 지점), 메모리 색인(`CodeGraph`), 줄 단위 스캐너(`LineScanner`, `LineRule`), 플랫폼이 넘기는 재료(`AppScan`: `Component`, `StaticSink`, Java 규칙, 알려진 반환 타입, 브리지 애너테이션), 분류 우선순위(`Categories`).
 - `android/`: `AndroidManifests`(모듈의 src/main 매니페스트, namespace), `XmlTree`(DOCTYPE·외부 엔티티를 막은 SAX, 줄 번호), `AndroidConfigChecks`(매니페스트·네트워크 보안 설정 → detector=config), `AndroidRules`(Java 규칙, 줄 규칙, 입구 메서드), `AndroidScanner`.
-- `ios/`: `Plist`(XML plist dict 읽기), `IosScanner`(Info.plist: ATS·파일 공유·URL 스킴 / entitlements: get-task-allow·유니버설 링크 → detector=config 와 입구, URL 을 받는 함수 위치), `IosRules`(Swift·Objective-C 줄 규칙). plist 는 `XmlTree.parsePlist` 로 읽는다(Apple 공개 DOCTYPE 만 지우고 내부 선언은 거절). `AppRegistry` 가 안드로이드·iOS 재료를 합친다.
+- `ios/`: `Plist`(XML plist dict 읽기), `IosScanner`(Info.plist: ATS·파일 공유·URL 스킴 / entitlements: get-task-allow·유니버설 링크 → detector=config 와 입구, URL 을 받는 곳 `handlerLocations` 파일:줄. URL 스킴과 유니버설 링크는 패턴을 따로 쓴다), `IosRules`(Swift·Objective-C 줄 규칙). plist 는 `XmlTree.parsePlist` 로 읽는다(Apple 공개 DOCTYPE 만 지우고 내부 선언은 거절). `AppRegistry` 가 안드로이드·iOS 재료를 합친다.
 - 위험 지점 props `detector`: code(Java 호출), line(줄 규칙), config(설정). 새 분류는 `Categories.ORDER` 에도 넣는다. CWE 를 새로 쓰면 `findings/MobileMapping` 에 OWASP Mobile·MASVS 를 넣는다.
 - 새 도구는 `SherlockTools` 에 `ToolDef` 를 추가하고 `all()` 에 넣는다. 입력 오류는 `ToolException`.
 

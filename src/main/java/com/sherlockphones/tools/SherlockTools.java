@@ -110,12 +110,12 @@ public class SherlockTools {
             }
             if (app.ios().detected()) {
                 sb.append("플랫폼: iOS · Info.plist ").append(app.ios().infoPlists().size()).append("개, entitlements ")
-                        .append(app.ios().entitlements().size()).append("개 (Swift·Objective-C 는 줄 단위 규칙, 호출 경로 없음)\n");
+                        .append(app.ios().entitlements().size()).append("개 (Swift 는 호출 경로까지, Objective-C 는 줄 단위 규칙만)\n");
             }
             if (!app.android().detected() && !app.ios().detected()) {
                 sb.append("플랫폼: AndroidManifest.xml·Info.plist 를 찾지 못함 (줄 단위 규칙과 Java·Kotlin 코드만 봄)\n");
             }
-            sb.append("파일 ").append(s.files()).append(" · Java 클래스 ").append(s.classes()).append(" · 메서드 ").append(s.methods())
+            sb.append("파일 ").append(s.files()).append(" · 클래스 ").append(s.classes()).append(" · 메서드 ").append(s.methods())
                     .append(" · 진입점(외부에 열린 컴포넌트·JS 브리지) ").append(s.entryPoints()).append('\n')
                     .append("위험 지점 ").append(s.sinks()).append(" (코드 그래프 ").append(byDetector.getOrDefault("code", 0L))
                     .append(" · 줄 단위 규칙 ").append(byDetector.getOrDefault(StaticSink.LINE, 0L))
@@ -292,7 +292,7 @@ public class SherlockTools {
 
     ToolDef findCodeNodes() {
         return new ToolDef("find_code_nodes", "코드 노드 찾기",
-                "이름으로 Java 클래스·메서드·입구·위험 지점을 찾는다 (대소문자 무시, 부분 일치). 메서드 이름은 'Class#method(ParamType)' 형식이다.",
+                "이름으로 클래스·메서드(Java·Kotlin·Swift)·입구·위험 지점을 찾는다 (대소문자 무시, 부분 일치). 메서드 이름은 'Class#method(ParamType)' 형식이다.",
                 schema(props(
                         "app", APP,
                         "query", string("찾을 이름 일부 (예: StatementProvider#query)"),

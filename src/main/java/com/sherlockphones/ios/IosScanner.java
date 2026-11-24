@@ -22,16 +22,21 @@ import java.util.stream.Stream;
 
 /**
  * iOS 앱을 훑는다: Info.plist(ATS 예외, 파일 공유, URL 스킴), *.entitlements(디버그 허용, 유니버설 링크),
- * Swift·Objective-C 줄 단위 규칙. Swift 파서가 없어서 URL 스킴·유니버설 링크는 호출 경로 없는 입구가 된다.
+ * Swift·Objective-C 줄 단위 규칙. URL 스킴·유니버설 링크 입구에는 URL 을 받는 곳(handlerLocations, 파일:줄)을 달고,
+ * 코드 그래프가 그 위치의 Swift 함수로 잇는다.
  */
 public final class IosScanner {
 
     /** Pods·빌드 결과물·테스트 번들은 배포 앱의 소스가 아니다 */
     private static final Set<String> SKIP_DIRS = Set.of(".git", "Pods", "Carthage", "DerivedData", "build", ".build",
             "node_modules", "fastlane", "vendor");
+    /** URL 스킴으로 열릴 때 부르는 곳: application(_:open:options:), scene(_:openURLContexts:), onOpenURL, ObjC openURL: */
     private static final Pattern URL_HANDLER = Pattern.compile(
-            "func\\s+application\\s*\\([^)]*open\\s+url\\s*:|openURLContexts|\\.onOpenURL\\s*\\{|continue\\s+userActivity|"
-                    + "application:\\s*\\(UIApplication\\s*\\*\\)\\s*\\w+\\s+openURL:|continueUserActivity:");
+            "func\\s+application\\s*\\([^)]*open\\s+url\\s*:|openURLContexts|\\.onOpenURL\\s*\\{|"
+                    + "application:\\s*\\(UIApplication\\s*\\*\\)\\s*\\w+\\s+openURL:");
+    /** 유니버설 링크로 열릴 때 부르는 곳: application(_:continue:restorationHandler:), scene(_:continue:), onOpenURL, onContinueUserActivity */
+    private static final Pattern LINK_HANDLER = Pattern.compile(
+            "continue\\s+userActivity|continueUserActivity:|\\.onOpenURL\\s*\\{|\\.onContinueUserActivity\\s*\\(");
 
     /**
      * @param infoPlists   Info.plist (테스트·확장 번들 제외)
@@ -67,9 +72,10 @@ public final class IosScanner {
         }
         List<StaticSink> sinks = new ArrayList<>();
         List<Component> components = new ArrayList<>();
-        List<String> handlers = urlHandlers(root);
-        infoPlists.forEach(p -> checkInfoPlist(p, sinks, components, handlers));
-        entitlements.forEach(p -> checkEntitlements(p, sinks, components, handlers));
+        List<String> urlHandlers = handlers(root, URL_HANDLER);
+        List<String> linkHandlers = handlers(root, LINK_HANDLER);
+        infoPlists.forEach(p -> checkInfoPlist(p, sinks, components, urlHandlers));
+        entitlements.forEach(p -> checkEntitlements(p, sinks, components, linkHandlers));
         sinks.addAll(LineScanner.scan(root, IosRules.LINE_RULES));
         return new IosApp(List.copyOf(infoPlists), List.copyOf(entitlements), List.copyOf(errors), List.copyOf(components),
                 List.copyOf(sinks));
@@ -111,6 +117,7 @@ public final class IosScanner {
                 Map<String, Object> props = new LinkedHashMap<>();
                 props.put("exported", "true");
                 props.put("deepLinks", List.of(scheme + "://"));
+                props.put("handlerLocations", handlers);
                 props.put("source", handlerNote(handlers));
                 components.add(new Component("URL_SCHEME", scheme + "://", List.of(), plist.path(),
                         schemes == null ? type.line() : schemes.line(), props));
@@ -132,6 +139,7 @@ public final class IosScanner {
             Map<String, Object> props = new LinkedHashMap<>();
             props.put("exported", "true");
             props.put("deepLinks", List.of("https://" + domain.substring("applinks:".length()) + "/"));
+            props.put("handlerLocations", handlers);
             props.put("source", handlerNote(handlers));
             components.add(new Component("UNIVERSAL_LINK", domain, List.of(), plist.path(), domains.line(), props));
         }
@@ -149,20 +157,20 @@ public final class IosScanner {
         return new StaticSink(plist.path(), line, 1, category, cwe, api, snippet, StaticSink.CONFIG);
     }
 
-    /** Swift 파서가 없으니 URL 을 받는 함수의 위치만 알려 준다 */
+    /** Swift 함수로 잇지 못했을 때(Objective-C, SwiftUI 클로저, 파서를 쓸 수 없음) 보여 줄 위치 */
     private static String handlerNote(List<String> handlers) {
-        return "Swift·Objective-C 는 아직 호출 경로가 없음. URL 을 받는 곳: "
+        return "호출 경로 없음. URL 을 받는 곳: "
                 + (handlers.isEmpty() ? "찾지 못함 (grep_code 로 openURL·onOpenURL·userActivity 를 찾을 것)" : String.join(", ", handlers));
     }
 
-    /** application(_:open:options:), scene(_:openURLContexts:), onOpenURL, continue userActivity 가 있는 파일:줄 */
-    static List<String> urlHandlers(Path root) {
+    /** 패턴이 걸리는 Swift·Objective-C 파일:줄 */
+    static List<String> handlers(Path root, Pattern pattern) {
         List<String> found = new ArrayList<>();
         for (Path file : sources(root)) {
             try {
                 List<String> lines = Files.readAllLines(file, StandardCharsets.UTF_8);
                 for (int i = 0; i < lines.size(); i++) {
-                    Matcher m = URL_HANDLER.matcher(lines.get(i));
+                    Matcher m = pattern.matcher(lines.get(i));
                     if (m.find()) {
                         found.add(root.relativize(file).toString().replace('\\', '/') + ":" + (i + 1));
                     }

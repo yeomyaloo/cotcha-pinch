@@ -64,7 +64,7 @@
       "file": "BankiOS/Storage.swift",
       "lines": [9, 11],
       "sinkLine": 10,
-      "entryPoint": null,
+      "entryPoint": "URL_SCHEME bankapp://",
       "attacker": "link",
       "why": "bankapp://payees?remove= 값을 SQL 문자열에 넣는다"
     },
@@ -163,7 +163,7 @@
       "file": "BankiOS/WebViewController.swift",
       "lines": [27, 32],
       "sinkLine": 30,
-      "entryPoint": null,
+      "entryPoint": "JS_BRIDGE WebViewController#userContentController(_:didReceive:)",
       "attacker": "link",
       "why": "브리지 메시지를 보낸 아무 페이지에 인증 토큰을 넘겨준다"
     }

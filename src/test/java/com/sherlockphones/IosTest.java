@@ -38,7 +38,16 @@ class IosTest {
 
         assertThat(call(tools, "list_components", Map.of("app", "bank-ios")))
                 .contains("URL_SCHEME bankapp://", "UNIVERSAL_LINK applinks:bank.example.com", "딥링크 https://bank.example.com/",
-                        "URL 을 받는 곳: BankiOS/AppDelegate.swift:8");
+                        "입력을 받는 메서드: AppDelegate#application(_:open:options:)",
+                        "JS_BRIDGE WebViewController#userContentController(_:didReceive:)",
+                        "호출 경로 없음. URL 을 받는 곳: 찾지 못함");
+
+        // Swift 파서로 URL 스킴 → 처리 함수 → 위험 지점, JS 브리지 → 위험 지점 경로가 이어진다
+        assertThat(call(tools, "list_sink_paths", Map.of("app", "bank-ios")))
+                .contains("URL_SCHEME bankapp://  →  [SQL CWE-89]",
+                        "경로: AppDelegate#application(_:open:options:)(#",
+                        "PayeeDatabase#deletePayee(named:)",
+                        "JS_BRIDGE WebViewController#userContentController(_:didReceive:)  →  [WEBVIEW CWE-79]");
 
         assertThat(call(tools, "list_sinks", Map.of("app", "bank-ios", "category", "hardcoded_secret")))
                 .contains("clie****(가림)").doesNotContain("9fQ2LxT7").doesNotContain("BankiOSTests");

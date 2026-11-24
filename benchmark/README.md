@@ -5,7 +5,7 @@ An evaluation harness: does an audit find the real vulnerabilities, skip the saf
 | File | What it is |
 |---|---|
 | `bank-app/` | A small Android banking app (Gradle layout, Java and Kotlin) with **23 real vulnerabilities** (7 config, 13 Java, 3 Kotlin) and **11 safe look-alikes**: a bound query next to a concatenated one, a non-exported provider with a canonical-path check next to an exported one without, an immutable explicit `PendingIntent` next to a mutable implicit one, encrypted next to plain `SharedPreferences`, SHA-256 pinning next to a trust-all `TrustManager`, and so on. No hint comments. |
-| `bank-ios/`, `bank-ios.expected.json` | The same for iOS (Swift and Objective-C): **15 real vulnerabilities** (4 Info.plist / entitlements, 11 code) and **6 traps**: plain vs. pinned `URLSession` trust, a string-built `sqlite3_exec` vs. a bound `sqlite3_prepare_v2`, MD5 for a PIN vs. for a cache key, and so on. iOS code checks are line rules, so none of these has a call path yet. |
+| `bank-ios/`, `bank-ios.expected.json` | The same for iOS (Swift and Objective-C): **15 real vulnerabilities** (4 Info.plist / entitlements, 11 code) and **6 traps**: plain vs. pinned `URLSession` trust, a string-built `sqlite3_exec` vs. a bound `sqlite3_prepare_v2`, MD5 for a PIN vs. for a cache key, and so on. Swift is parsed, so two of them have call paths: the URL scheme → `sqlite3_exec`, and the `WKScriptMessageHandler` bridge → `evaluateJavaScript`. |
 | `bank-app.expected.json` | The answer key: file, line range, sink line, accepted CWEs, entry point and attacker of each item. It lives **outside** `bank-app/` so the agent cannot read it while auditing. |
 | `score.py` | Scores SARIF reports against the answer key: recall, precision, trap false positives, wrong CWE, duplicates, and consistency across runs. |
 | `test_score.py` | Tests for the scoring rules. |
@@ -34,7 +34,7 @@ Rules: a finding points at an item when one of its locations is inside the item'
 | 파일 | 내용 |
 |---|---|
 | `bank-app/` | 작은 안드로이드 은행 앱(Gradle 구조, Java·Kotlin). **진짜 취약점 23개**(설정 7, Java 13, Kotlin 3)와 **안전한 함정 11개**. 바인드 변수 쿼리와 이어 붙인 쿼리, canonical 경로를 확인하는 닫힌 Provider 와 확인 없는 열린 Provider, 대상이 정해진 IMMUTABLE PendingIntent 와 대상 없는 MUTABLE PendingIntent, 암호화한 SharedPreferences 와 평문, SHA-256 인증서 고정과 모든 인증서를 믿는 TrustManager 처럼 짝을 이룬다. 힌트 주석은 없다. |
-| `bank-ios/`, `bank-ios.expected.json` | iOS(Swift·Objective-C) 판. **진짜 취약점 15개**(Info.plist·entitlements 4, 코드 11)와 **함정 6개**: 그대로 믿는 `URLSession` 과 인증서 고정, 문자열을 이어 붙인 `sqlite3_exec` 와 바인드한 `sqlite3_prepare_v2`, PIN 용 MD5 와 캐시 키용 MD5 등. iOS 코드 검사는 줄 단위 규칙이라 아직 호출 경로가 없다. |
+| `bank-ios/`, `bank-ios.expected.json` | iOS(Swift·Objective-C) 판. **진짜 취약점 15개**(Info.plist·entitlements 4, 코드 11)와 **함정 6개**: 그대로 믿는 `URLSession` 과 인증서 고정, 문자열을 이어 붙인 `sqlite3_exec` 와 바인드한 `sqlite3_prepare_v2`, PIN 용 MD5 와 캐시 키용 MD5 등. Swift 를 파싱하므로 그중 둘은 호출 경로가 있다: URL 스킴 → `sqlite3_exec`, `WKScriptMessageHandler` 브리지 → `evaluateJavaScript`. |
 | `bank-app.expected.json` | 정답 파일. 항목마다 파일, 줄 범위, 위험 지점 줄, 인정하는 CWE, 입구, 공격자. 분석 중에 읽지 못하도록 `bank-app/` **밖**에 둔다. |
 | `score.py` | SARIF 보고서를 정답과 비교해 채점한다. 재현율, 정밀도, 함정 오탐, 분류 틀림, 중복, 실행 간 일관성. |
 | `test_score.py` | 채점 규칙 테스트. |
