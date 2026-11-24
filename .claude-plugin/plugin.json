@@ -1,0 +1,36 @@
+{
+  "name": "sherlock-phones",
+  "displayName": "Sherlock Phones: mobile app security audit",
+  "version": "0.1.0",
+  "description": "Audit Android app source code for security vulnerabilities in chat. Checks the manifest and network security config, follows exported components, deep links and JS bridges to dangerous code with a code graph, records findings by attacker (other app, link, network, device), re-verifies each one adversarially, and exports Markdown/SARIF reports mapped to the OWASP Mobile Top 10 and MASVS. Requires Java 17+.",
+  "author": {
+    "name": "hwiju yeom",
+    "url": "https://github.com/yeomyaloo"
+  },
+  "homepage": "https://github.com/yeomyaloo/sherlock-phones",
+  "repository": "https://github.com/yeomyaloo/sherlock-phones",
+  "license": "Apache-2.0",
+  "keywords": [
+    "security",
+    "android",
+    "mobile",
+    "masvs",
+    "owasp-mobile",
+    "sast",
+    "mcp",
+    "sarif"
+  ],
+  "mcpServers": {
+    "sherlock-phones": {
+      "command": "java",
+      "args": [
+        "-Dfile.encoding=UTF-8",
+        "-Dstdout.encoding=UTF-8",
+        "-Dstderr.encoding=UTF-8",
+        "-cp",
+        "${CLAUDE_PLUGIN_ROOT}/server/lib/*",
+        "com.sherlockphones.SherlockPhones"
+      ]
+    }
+  }
+}

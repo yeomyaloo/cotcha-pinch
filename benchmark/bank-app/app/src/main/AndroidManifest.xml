@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <uses-permission android:name="android.permission.INTERNET" />
+
+    <permission
+        android:name="com.example.bank.permission.SYNC"
+        android:protectionLevel="signature" />
+
+    <application
+        android:name=".BankApp"
+        android:label="Bank"
+        android:allowBackup="true"
+        android:debuggable="true"
+        android:networkSecurityConfig="@xml/network_security_config">
+
+        <activity
+            android:name=".MainActivity"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+
+        <activity
+            android:name=".web.WebActivity"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="bank" android:host="web" />
+            </intent-filter>
+        </activity>
+
+        <activity
+            android:name=".search.PayeeSearchActivity"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="bank" android:host="payees" />
+            </intent-filter>
+        </activity>
+
+        <activity
+            android:name=".web.HelpActivity"
+            android:exported="false" />
+
+        <activity
+            android:name=".share.ShareActivity"
+            android:exported="true" />
+
+        <activity
+            android:name=".transfer.TransferActivity"
+            android:exported="false" />
+
+        <service
+            android:name=".sync.SyncService"
+            android:exported="true"
+            android:permission="com.example.bank.permission.SYNC" />
+
+        <receiver
+            android:name=".push.PushReceiver"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="com.example.bank.PUSH" />
+            </intent-filter>
+        </receiver>
+
+        <provider
+            android:name=".data.StatementProvider"
+            android:authorities="com.example.bank.statements"
+            android:exported="true" />
+
+        <provider
+            android:name=".data.AvatarProvider"
+            android:authorities="com.example.bank.avatars"
+            android:exported="false"
+            android:grantUriPermissions="true" />
+    </application>
+</manifest>

@@ -1,0 +1,15 @@
+{
+  "name": "yeomyaloo-sherlock-phones",
+  "owner": {
+    "name": "hwiju yeom",
+    "url": "https://github.com/yeomyaloo"
+  },
+  "description": "Mobile app security audit for Android (MCP server + skill)",
+  "plugins": [
+    {
+      "name": "sherlock-phones",
+      "source": "./",
+      "description": "Audit Android app source code for security vulnerabilities in chat (manifest checks, exported components and deep links, findings by attacker, OWASP Mobile Top 10 / MASVS reports). Requires Java 17+."
+    }
+  ]
+}

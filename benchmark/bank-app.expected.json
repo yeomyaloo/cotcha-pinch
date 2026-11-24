@@ -1,0 +1,349 @@
+{
+  "name": "bank-app",
+  "description": "안드로이드 은행 앱 예제. 진짜 취약점 23개(설정 7, Java 13, Kotlin 3)와 같은 분류의 안전한 코드 11개를 섞었다.",
+  "vulnerabilities": [
+    {
+      "id": "config-debuggable",
+      "category": "DEBUGGABLE",
+      "cwe": ["CWE-489"],
+      "file": "app/src/main/AndroidManifest.xml",
+      "lines": [10, 15],
+      "sinkLine": 14,
+      "entryPoint": null,
+      "attacker": "device",
+      "why": "배포 매니페스트에 android:debuggable=true"
+    },
+    {
+      "id": "config-allow-backup",
+      "category": "BACKUP",
+      "cwe": ["CWE-530"],
+      "file": "app/src/main/AndroidManifest.xml",
+      "lines": [10, 15],
+      "sinkLine": 13,
+      "entryPoint": null,
+      "attacker": "device",
+      "why": "allowBackup=true 라서 adb 백업으로 평문 토큰(SharedPreferences)을 꺼낼 수 있다"
+    },
+    {
+      "id": "exported-share-activity",
+      "category": "EXPORTED",
+      "cwe": ["CWE-926"],
+      "file": "app/src/main/AndroidManifest.xml",
+      "lines": [52, 54],
+      "sinkLine": 54,
+      "entryPoint": null,
+      "attacker": "other_app",
+      "why": "권한 없이 열린 ShareActivity 가 받은 Intent 를 그대로 띄운다"
+    },
+    {
+      "id": "exported-push-receiver",
+      "category": "EXPORTED",
+      "cwe": ["CWE-926", "CWE-925"],
+      "file": "app/src/main/AndroidManifest.xml",
+      "lines": [65, 71],
+      "sinkLine": 67,
+      "entryPoint": null,
+      "attacker": "other_app",
+      "why": "권한 없이 열린 리시버라 아무 앱이나 가짜 푸시 알림을 띄울 수 있다"
+    },
+    {
+      "id": "exported-statement-provider",
+      "category": "EXPORTED",
+      "cwe": ["CWE-926", "CWE-284", "CWE-862"],
+      "file": "app/src/main/AndroidManifest.xml",
+      "lines": [73, 76],
+      "sinkLine": 76,
+      "entryPoint": null,
+      "attacker": "other_app",
+      "why": "권한 없이 열린 Provider 로 아무 앱이나 거래 명세를 읽는다"
+    },
+    {
+      "id": "nsc-cleartext-rates",
+      "category": "CLEARTEXT",
+      "cwe": ["CWE-319"],
+      "file": "app/src/main/res/xml/network_security_config.xml",
+      "lines": [9, 11],
+      "sinkLine": 9,
+      "entryPoint": null,
+      "attacker": "network",
+      "why": "rates 도메인에 평문 HTTP 허용"
+    },
+    {
+      "id": "nsc-user-ca-pay",
+      "category": "TLS",
+      "cwe": ["CWE-295"],
+      "file": "app/src/main/res/xml/network_security_config.xml",
+      "lines": [13, 19],
+      "sinkLine": 17,
+      "entryPoint": null,
+      "attacker": "network",
+      "why": "결제 도메인이 사용자가 설치한 인증서도 믿는다 (배포 설정, debug-overrides 아님)"
+    },
+    {
+      "id": "webview-js-bridge",
+      "category": "WEBVIEW",
+      "cwe": ["CWE-749", "CWE-940"],
+      "file": "app/src/main/java/com/example/bank/web/WebActivity.java",
+      "lines": [20, 21],
+      "sinkLine": 21,
+      "entryPoint": "ACTIVITY com.example.bank.web.WebActivity",
+      "attacker": "link",
+      "why": "딥링크로 받은 아무 페이지에 세션 토큰을 돌려주는 JS 브리지를 노출한다"
+    },
+    {
+      "id": "tls-webview-ssl-proceed",
+      "category": "TLS",
+      "cwe": ["CWE-295"],
+      "file": "app/src/main/java/com/example/bank/web/WebActivity.java",
+      "lines": [22, 27],
+      "sinkLine": 25,
+      "entryPoint": "ACTIVITY com.example.bank.web.WebActivity",
+      "attacker": "network",
+      "why": "인증서 오류를 무시하고 진행한다"
+    },
+    {
+      "id": "webview-deeplink-url",
+      "category": "WEBVIEW",
+      "cwe": ["CWE-79", "CWE-601", "CWE-749", "CWE-939", "CWE-940", "CWE-20"],
+      "file": "app/src/main/java/com/example/bank/web/WebActivity.java",
+      "lines": [28, 30],
+      "sinkLine": 30,
+      "entryPoint": "ACTIVITY com.example.bank.web.WebActivity",
+      "attacker": "link",
+      "why": "bank://web?url= 의 아무 주소나 WebView 에 띄운다"
+    },
+    {
+      "id": "sql-statement-provider",
+      "category": "SQL",
+      "cwe": ["CWE-89"],
+      "file": "app/src/main/java/com/example/bank/data/StatementProvider.java",
+      "lines": [24, 28],
+      "sinkLine": 27,
+      "entryPoint": "PROVIDER com.example.bank.data.StatementProvider",
+      "attacker": "other_app",
+      "why": "다른 앱이 준 selection 을 SQL 에 이어 붙인다"
+    },
+    {
+      "id": "path-statement-provider",
+      "category": "PATH",
+      "cwe": ["CWE-22", "CWE-23"],
+      "file": "app/src/main/java/com/example/bank/data/StatementProvider.java",
+      "lines": [30, 38],
+      "sinkLine": 32,
+      "entryPoint": "PROVIDER com.example.bank.data.StatementProvider",
+      "attacker": "other_app",
+      "why": "getLastPathSegment(%2F 가 풀린 ../)로 앱 폴더 밖 파일을 연다"
+    },
+    {
+      "id": "intent-redirect-share",
+      "category": "INTENT",
+      "cwe": ["CWE-940", "CWE-926", "CWE-927", "CWE-284"],
+      "file": "app/src/main/java/com/example/bank/share/ShareActivity.java",
+      "lines": [9, 17],
+      "sinkLine": 12,
+      "entryPoint": "ACTIVITY com.example.bank.share.ShareActivity",
+      "attacker": "other_app",
+      "why": "받은 Intent 를 그대로 띄워 내부 TransferActivity 까지 열린다"
+    },
+    {
+      "id": "pending-intent-mutable",
+      "category": "INTENT",
+      "cwe": ["CWE-927", "CWE-940"],
+      "file": "app/src/main/java/com/example/bank/push/PushReceiver.java",
+      "lines": [19, 20],
+      "sinkLine": 19,
+      "entryPoint": "RECEIVER com.example.bank.push.PushReceiver",
+      "attacker": "other_app",
+      "why": "대상이 정해지지 않은 Intent 로 FLAG_MUTABLE PendingIntent 를 만든다"
+    },
+    {
+      "id": "storage-auth-token-plain",
+      "category": "STORAGE",
+      "cwe": ["CWE-312", "CWE-922", "CWE-311"],
+      "file": "app/src/main/java/com/example/bank/auth/TokenStore.java",
+      "lines": [23, 25],
+      "sinkLine": 25,
+      "entryPoint": null,
+      "attacker": "device",
+      "why": "인증 토큰을 암호화하지 않은 SharedPreferences 에 저장한다"
+    },
+    {
+      "id": "logging-auth-token",
+      "category": "LOGGING",
+      "cwe": ["CWE-532", "CWE-200"],
+      "file": "app/src/main/java/com/example/bank/auth/TokenStore.java",
+      "lines": [26, 26],
+      "sinkLine": 26,
+      "entryPoint": null,
+      "attacker": "device",
+      "why": "인증 토큰을 로그에 남긴다"
+    },
+    {
+      "id": "tls-trust-all-manager",
+      "category": "TLS",
+      "cwe": ["CWE-295"],
+      "file": "app/src/main/java/com/example/bank/net/ApiClient.java",
+      "lines": [19, 40],
+      "sinkLine": 32,
+      "entryPoint": "SERVICE com.example.bank.sync.SyncService",
+      "attacker": "network",
+      "why": "checkServerTrusted 가 아무것도 확인하지 않는 TrustManager 로 API 클라이언트를 만든다"
+    },
+    {
+      "id": "crypto-ecb",
+      "category": "WEAK_CRYPTO",
+      "cwe": ["CWE-327"],
+      "file": "app/src/main/java/com/example/bank/crypto/PinCrypto.java",
+      "lines": [18, 22],
+      "sinkLine": 19,
+      "entryPoint": null,
+      "attacker": "device",
+      "why": "PIN 을 AES/ECB 로 암호화한다"
+    },
+    {
+      "id": "crypto-hardcoded-key",
+      "category": "WEAK_CRYPTO",
+      "cwe": ["CWE-321", "CWE-798"],
+      "file": "app/src/main/java/com/example/bank/crypto/PinCrypto.java",
+      "lines": [16, 20],
+      "sinkLine": 20,
+      "entryPoint": null,
+      "attacker": "device",
+      "why": "PIN 암호화 키가 코드에 박혀 있다"
+    },
+    {
+      "id": "random-otp",
+      "category": "WEAK_RANDOM",
+      "cwe": ["CWE-330", "CWE-338"],
+      "file": "app/src/main/java/com/example/bank/crypto/PinCrypto.java",
+      "lines": [30, 33],
+      "sinkLine": 31,
+      "entryPoint": null,
+      "attacker": "device",
+      "why": "OTP 를 java.util.Random 으로 만든다"
+    },
+    {
+      "id": "kotlin-sql-payee-search",
+      "category": "SQL",
+      "cwe": ["CWE-89"],
+      "file": "app/src/main/java/com/example/bank/search/PayeeSearchActivity.kt",
+      "lines": [12, 24],
+      "sinkLine": 22,
+      "entryPoint": null,
+      "attacker": "link",
+      "why": "딥링크 bank://payees?q= 값을 SQL 문자열 템플릿에 넣는다"
+    },
+    {
+      "id": "kotlin-webview-universal-access",
+      "category": "WEBVIEW",
+      "cwe": ["CWE-749", "CWE-200"],
+      "file": "app/src/main/java/com/example/bank/coupon/CouponWebView.kt",
+      "lines": [8, 12],
+      "sinkLine": 11,
+      "entryPoint": null,
+      "attacker": "link",
+      "why": "file:// 페이지가 아무 출처에나 접근할 수 있게 한다"
+    },
+    {
+      "id": "kotlin-client-secret",
+      "category": "HARDCODED_SECRET",
+      "cwe": ["CWE-798"],
+      "file": "app/src/main/java/com/example/bank/config/Keys.kt",
+      "lines": [5, 5],
+      "sinkLine": 5,
+      "entryPoint": null,
+      "attacker": "device",
+      "why": "결제 API 의 클라이언트 비밀값이 앱에 들어 있다 (APK 를 풀면 누구나 본다)"
+    }
+  ],
+  "safe": [
+    {
+      "id": "webview-help-asset",
+      "category": "WEBVIEW",
+      "file": "app/src/main/java/com/example/bank/web/HelpActivity.java",
+      "lines": [12, 24],
+      "sinkLine": 23,
+      "why": "외부에 열리지 않은 화면이 앱에 들어 있는 고정된 도움말 파일만 띄우고, 인증서 오류는 취소한다"
+    },
+    {
+      "id": "path-avatar-checked",
+      "category": "PATH",
+      "file": "app/src/main/java/com/example/bank/data/AvatarProvider.java",
+      "lines": [21, 33],
+      "sinkLine": 25,
+      "why": "열리지 않은 Provider 이고, getCanonicalPath 로 기준 폴더 안인지 확인한다"
+    },
+    {
+      "id": "sql-transaction-bound",
+      "category": "SQL",
+      "file": "app/src/main/java/com/example/bank/data/TransactionRepository.java",
+      "lines": [18, 27],
+      "sinkLine": 20,
+      "why": "바인드 변수(?)를 쓴다"
+    },
+    {
+      "id": "intent-transfer-account",
+      "category": "INTENT",
+      "file": "app/src/main/java/com/example/bank/transfer/TransferActivity.java",
+      "lines": [9, 16],
+      "sinkLine": 12,
+      "why": "열리지 않은 화면이 Intent 가 아닌 데이터 객체(Account)를 꺼내 이름만 보여준다"
+    },
+    {
+      "id": "pending-intent-immutable",
+      "category": "INTENT",
+      "file": "app/src/main/java/com/example/bank/MainActivity.java",
+      "lines": [17, 25],
+      "sinkLine": 24,
+      "why": "대상 컴포넌트가 정해진 Intent 에 FLAG_IMMUTABLE"
+    },
+    {
+      "id": "log-push-constant",
+      "category": "LOGGING",
+      "file": "app/src/main/java/com/example/bank/push/PushReceiver.java",
+      "lines": [18, 18],
+      "sinkLine": 18,
+      "why": "고정된 문구만 남기고 토큰 값은 남기지 않는다"
+    },
+    {
+      "id": "storage-refresh-token-encrypted",
+      "category": "STORAGE",
+      "file": "app/src/main/java/com/example/bank/auth/TokenStore.java",
+      "lines": [29, 35],
+      "sinkLine": 34,
+      "why": "Keystore 키로 암호화하는 EncryptedSharedPreferences 에 저장한다"
+    },
+    {
+      "id": "crypto-sha256-pin",
+      "category": "WEAK_CRYPTO",
+      "file": "app/src/main/java/com/example/bank/net/ApiClient.java",
+      "lines": [42, 79],
+      "sinkLine": 72,
+      "why": "인증서 고정에 SHA-256 을 쓰고, 시스템 검증 뒤에 핀을 확인한다"
+    },
+    {
+      "id": "crypto-gcm",
+      "category": "WEAK_CRYPTO",
+      "file": "app/src/main/java/com/example/bank/crypto/PinCrypto.java",
+      "lines": [24, 28],
+      "sinkLine": 25,
+      "why": "AES/GCM 과 밖에서 받은 키를 쓴다"
+    },
+    {
+      "id": "random-tips",
+      "category": "WEAK_RANDOM",
+      "file": "app/src/main/java/com/example/bank/crypto/PinCrypto.java",
+      "lines": [35, 39],
+      "sinkLine": 37,
+      "why": "도움말 순서 섞기라서 예측 가능해도 보안 문제가 아니다"
+    },
+    {
+      "id": "kotlin-sql-bound",
+      "category": "SQL",
+      "file": "app/src/main/java/com/example/bank/search/PayeeSearchActivity.kt",
+      "lines": [26, 29],
+      "sinkLine": 27,
+      "why": "바인드 변수(?)를 쓴다"
+    }
+  ]
+}
