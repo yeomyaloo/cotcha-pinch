@@ -1,7 +1,7 @@
 package com.sherlockphones.android;
 
 import com.sherlockphones.codegraph.LineRule;
-import com.sherlockphones.codegraph.SinkRule;
+import com.codeagent.core.rules.SinkRule;
 
 import java.util.List;
 import java.util.Map;

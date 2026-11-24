@@ -1,5 +1,7 @@
 package com.sherlockphones.codegraph;
 
+import com.codeagent.core.rules.SinkRule;
+
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;

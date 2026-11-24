@@ -18,7 +18,7 @@
 
 *Sherlock Phones* = Sherlock Holmes, but for **phones**. Point it at your app's source folder in Claude Code and say *"audit this app"*. Claude checks the manifest, walks the app's **attack surface → dangerous code** paths, reads the real code, records only what a real attacker can exploit, then switches sides and re-checks every finding before writing a report mapped to the **OWASP Mobile Top 10** and **MASVS**.
 
-It is the mobile sibling of [mcp-code-agent](https://github.com/yeomyaloo/mcp-code-agent) (Java/Spring servers) and shares its idea: **Claude is the brain, the MCP server is the hands.**
+It is the mobile sibling of [mcp-code-agent](https://github.com/yeomyaloo/mcp-code-agent) (Java/Spring servers) and shares its idea: **Claude is the brain, the MCP server is the hands.** Java parsing and call linking come from the shared engine [core-code-agent](https://github.com/yeomyaloo/core-code-agent); this repository adds the mobile parts (manifest and config checks, Android entry points and rules, line rules, the attacker model).
 
 - **Runs on your Claude Code login.** No separate API key, no database, no server to host. Only Java 17+.
 - **Reads source only.** It never builds, installs or runs the app, and needs no emulator or device.
@@ -129,6 +129,7 @@ Settings (environment variables): `SHERLOCK_PHONES_HOME` (default `~/.sherlock-p
 | # | Step | Status |
 |---|---|---|
 | 0 | Name, logo, design, threat model | ✅ Done |
+| 1-1 | Use the shared engine core-code-agent (0.3.0, `JavaGraphSupport`) instead of a copied Java engine; the benchmark result is unchanged | ✅ Done |
 | 1 | Android: manifest and network security config checks, exported components and JS bridges as entry points, Android Java sinks, trust-all TLS detection, Kotlin and storage/log/secret line rules, findings by attacker, OWASP Mobile / MASVS reports, `mobile-audit` skill, benchmark app with an answer key, CI | ✅ Done |
 | 2 | iOS: Info.plist / entitlements checks, Swift and Objective-C line rules, iOS benchmark app | ⏳ Planned |
 | 3 | tree-sitter parsing for Kotlin and Swift, so paths are followed across files | ⏳ Planned |
@@ -142,6 +143,8 @@ python -m unittest discover -s benchmark    # scoring script tests
 ./gradlew pluginServer                      # rebuild server/lib for the plugin
 ```
 
+The engine dependency `com.codeagent:core-code-agent` comes from GitHub Packages, which needs a token even for public packages (`gpr.user`/`gpr.key` in `~/.gradle/gradle.properties`). Without one, build against a local checkout: `./gradlew test -PcoreCodeAgentDir=../core-code-agent`.
+
 When you change server code, run `./gradlew pluginServer`, commit `server/lib`, and bump `version` in `.claude-plugin/plugin.json`.
 
 ```
@@ -153,7 +156,7 @@ src/main/java/com/sherlockphones/
 ├── SherlockPhones.java       stdio MCP server, tool and prompt registration
 ├── Prompts.java              mobile_audit, verify_findings prompts, server instructions
 ├── android/                  manifest reader (safe XML), config checks, Android rules, scanner
-├── codegraph/                Java code graph, line scanner, components, categories (shared by platforms)
+├── codegraph/                app graph on top of core-code-agent (components, JS bridges, trust-all TLS), line scanner, categories
 ├── dependency/               build files + OSV, scan history (same as mcp-code-agent)
 ├── findings/                 findings with attacker, OWASP Mobile / MASVS mapping, reports
 ├── source/                   Git URL policy, shallow clone
@@ -184,7 +187,7 @@ Use Sherlock Phones only on apps you own or are authorized to test. Automated fi
 
 *Sherlock Phones* = 셜록 **Holmes**에서 **Phones**(폰)로. 폰을 조사하는 셜록이에요. Claude Code에서 앱 소스 폴더를 주고 *"이 앱 보안 검사해줘"*라고 하면, Claude가 매니페스트를 보고 앱의 **공격 입구 → 위험한 코드** 경로를 따라가며 실제 코드를 읽어요. 실제 공격자가 해낼 수 있는 것만 기록하고, 입장을 바꿔 발견마다 다시 확인한 뒤 **OWASP Mobile Top 10**과 **MASVS** 기준으로 보고서를 써요.
 
-[mcp-code-agent](https://github.com/yeomyaloo/mcp-code-agent)(Java/Spring 서버용)의 모바일 버전이고, 같은 생각을 이어받았어요. **Claude는 두뇌, MCP 서버는 손발**이에요.
+[mcp-code-agent](https://github.com/yeomyaloo/mcp-code-agent)(Java/Spring 서버용)의 모바일 버전이고, 같은 생각을 이어받았어요. **Claude는 두뇌, MCP 서버는 손발**이에요. Java 파싱과 호출 연결은 공용 엔진 [core-code-agent](https://github.com/yeomyaloo/core-code-agent)를 쓰고, 이 저장소는 모바일 부분(매니페스트·설정 검사, 안드로이드 입구와 규칙, 줄 단위 규칙, 공격자 모델)을 더해요.
 
 - **Claude Code 로그인으로 돌아요.** 따로 넣을 API 키, DB, 띄울 서버가 없어요. Java 17 이상만 있으면 돼요.
 - **소스만 읽어요.** 앱을 빌드하거나 설치하거나 실행하지 않아요. 에뮬레이터나 실제 기기도 필요 없어요.
@@ -300,6 +303,7 @@ Claude가 앱을 불러와 번호 붙은 계획(컴포넌트나 파일, 분류·
 | # | 단계 | 상태 |
 |---|---|---|
 | 0 | 이름, 로고, 설계, 위협 모델 | ✅ 완료 |
+| 1-1 | 복사해 둔 Java 엔진 대신 공용 엔진 core-code-agent(0.3.0, `JavaGraphSupport`)를 씀. 벤치마크 결과는 그대로 | ✅ 완료 |
 | 1 | Android: 매니페스트·네트워크 보안 설정 검사, 외부에 열린 컴포넌트·JS 브리지를 입구로, 안드로이드 Java 위험 지점, 모든 인증서를 믿는 TLS 구현 찾기, Kotlin과 저장소·로그·비밀값 줄 단위 규칙, 공격자별 발견, OWASP Mobile·MASVS 보고서, `mobile-audit` 스킬, 정답이 있는 벤치마크 앱, CI | ✅ 완료 |
 | 2 | iOS: Info.plist·entitlements 검사, Swift·Objective-C 줄 단위 규칙, iOS 벤치마크 앱 | ⏳ 예정 |
 | 3 | Kotlin·Swift를 tree-sitter로 파싱해 파일을 넘나드는 경로 추적 | ⏳ 예정 |
@@ -313,6 +317,8 @@ python -m unittest discover -s benchmark    # 채점 스크립트 테스트
 ./gradlew pluginServer                      # 플러그인용 server/lib 다시 만들기
 ```
 
+엔진 `com.codeagent:core-code-agent` 는 GitHub Packages 에서 받는데, 공개 패키지여도 토큰이 필요해요(`~/.gradle/gradle.properties` 의 `gpr.user`/`gpr.key`). 토큰이 없으면 로컬 소스로 빌드해요: `./gradlew test -PcoreCodeAgentDir=../core-code-agent`.
+
 서버 코드를 바꾸면 `./gradlew pluginServer`로 `server/lib`를 다시 만들어 커밋하고 `.claude-plugin/plugin.json`의 `version`을 올려요.
 
 ```
@@ -324,7 +330,7 @@ src/main/java/com/sherlockphones/
 ├── SherlockPhones.java       stdio MCP 서버, 도구·프롬프트 등록
 ├── Prompts.java              mobile_audit, verify_findings 프롬프트, 서버 안내문
 ├── android/                  매니페스트 읽기(안전한 XML), 설정 검사, 안드로이드 규칙, 스캐너
-├── codegraph/                Java 코드 그래프, 줄 단위 스캐너, 컴포넌트, 분류 (플랫폼 공통)
+├── codegraph/                core-code-agent 위의 앱 그래프(컴포넌트, JS 브리지, 모든 인증서를 믿는 TLS), 줄 단위 스캐너, 분류
 ├── dependency/               빌드 파일 + OSV, 검사 기록 (mcp-code-agent 와 같음)
 ├── findings/                 공격자가 붙은 발견, OWASP Mobile·MASVS 분류, 보고서
 ├── source/                   Git 주소 검사, 얕은 클론

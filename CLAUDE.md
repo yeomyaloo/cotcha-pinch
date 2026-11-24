@@ -1,6 +1,6 @@
 # Sherlock Phones
 
-Android(다음 단계 iOS) 앱 소스코드의 보안 취약점을 찾는 Claude Code 플러그인 + stdio MCP 서버. Claude가 판단하고, 서버는 앱 불러오기·설정 검사·코드 그래프·파일 읽기·발견 기록·보고서를 맡는다. mcp-code-agent(`../mcp-code-agent`)의 엔진을 가져와 안드로이드용으로 바꿨다. GitHub 저장소 이름은 `sherlock-phones`(로컬 폴더 이름은 phonetective).
+Android(다음 단계 iOS) 앱 소스코드의 보안 취약점을 찾는 Claude Code 플러그인 + stdio MCP 서버. Claude가 판단하고, 서버는 앱 불러오기·설정 검사·코드 그래프·파일 읽기·발견 기록·보고서를 맡는다. Java 파싱·구조·호출 연결은 공용 엔진 core-code-agent(`../core-code-agent`, `com.codeagent:core-code-agent`)의 `JavaGraphSupport` 를 쓴다. GitHub 저장소 이름은 `sherlock-phones`(로컬 폴더 이름은 phonetective).
 
 ## 명령
 
@@ -12,11 +12,12 @@ claude plugin validate .                    # 플러그인 구조 검사 (CLAUDE
 ```
 
 - Windows PowerShell에서는 `.\gradlew.bat`.
+- core 는 GitHub Packages 에서 받는다(토큰 필요). 토큰이 없거나 core 를 같이 고칠 때는 `-PcoreCodeAgentDir=../core-code-agent`(PowerShell 에서는 따옴표로 감싼다). core 를 바꾸면 거기서 버전을 올리고 `v{version}` 태그로 배포한 뒤 `build.gradle` 의존 버전을 올린다.
 - 빌드는 JDK 21 toolchain, 바이트코드는 `release 17`. Java 21 전용 API(`getFirst` 등)를 쓰지 않는다.
 
 ## 구조
 
-- `codegraph/`: 플랫폼 공통. Java 코드 그래프(`JavaProject`, `CodeGraphBuilder`, `CodeGraph`), 줄 단위 스캐너(`LineScanner`, `LineRule`), 플랫폼이 넘기는 재료(`AppScan`: `Component`, `StaticSink`, Java 규칙, 알려진 반환 타입, 브리지 애너테이션), 분류 우선순위(`Categories`).
+- `codegraph/`: 플랫폼 공통. core 위의 앱 그래프(`CodeGraphBuilder`: 컴포넌트·JS 브리지 진입점, 아무 인증서나 믿는 TLS, 줄·설정 위험 지점), 메모리 색인(`CodeGraph`), 줄 단위 스캐너(`LineScanner`, `LineRule`), 플랫폼이 넘기는 재료(`AppScan`: `Component`, `StaticSink`, Java 규칙, 알려진 반환 타입, 브리지 애너테이션), 분류 우선순위(`Categories`).
 - `android/`: `AndroidManifests`(모듈의 src/main 매니페스트, namespace), `XmlTree`(DOCTYPE·외부 엔티티를 막은 SAX, 줄 번호), `AndroidConfigChecks`(매니페스트·네트워크 보안 설정 → detector=config), `AndroidRules`(Java 규칙, 줄 규칙, 입구 메서드), `AndroidScanner`.
 - iOS 는 `ios/` 에 같은 모양(설정 검사 + 줄 규칙 → `AppScan`)으로 더한다.
 - 위험 지점 props `detector`: code(Java 호출), line(줄 규칙), config(설정). 새 분류는 `Categories.ORDER` 에도 넣는다. CWE 를 새로 쓰면 `findings/MobileMapping` 에 OWASP Mobile·MASVS 를 넣는다.

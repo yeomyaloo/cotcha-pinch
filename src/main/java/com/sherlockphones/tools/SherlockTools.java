@@ -4,7 +4,7 @@ import com.sherlockphones.android.AndroidManifests.Manifest;
 import com.sherlockphones.codegraph.CodeGraph;
 import com.sherlockphones.codegraph.CodeGraph.Node;
 import com.sherlockphones.codegraph.CodeGraph.SinkPath;
-import com.sherlockphones.codegraph.CodeNodeKind;
+import com.codeagent.core.model.CodeNodeKind;
 import com.sherlockphones.codegraph.StaticSink;
 import com.sherlockphones.dependency.DependencyHistory;
 import com.sherlockphones.dependency.DependencyService;

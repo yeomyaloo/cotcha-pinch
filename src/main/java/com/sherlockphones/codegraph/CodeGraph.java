@@ -1,7 +1,11 @@
 package com.sherlockphones.codegraph;
 
-import com.sherlockphones.codegraph.CodeGraphDraft.EdgeDraft;
-import com.sherlockphones.codegraph.CodeGraphDraft.NodeDraft;
+import com.codeagent.core.java.JavaProject;
+import com.codeagent.core.model.CodeEdgeKind;
+import com.codeagent.core.model.CodeGraphDraft;
+import com.codeagent.core.model.CodeGraphDraft.EdgeDraft;
+import com.codeagent.core.model.CodeGraphDraft.NodeDraft;
+import com.codeagent.core.model.CodeNodeKind;
 
 import java.util.ArrayDeque;
 import java.util.ArrayList;
