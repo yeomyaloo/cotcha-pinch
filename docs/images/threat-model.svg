@@ -1,0 +1,76 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 520" width="960" height="520" role="img" aria-labelledby="t">
+  <title id="t">Who attacks a mobile app, and what Phonetective checks</title>
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#DC2626"/>
+    </marker>
+    <style>
+      text { font-family: 'Segoe UI', 'Apple SD Gothic Neo', 'Malgun Gothic', Verdana, sans-serif; fill: #1E293B; }
+      .h { font-size: 17px; font-weight: 700; }
+      .s { font-size: 13px; fill: #334155; }
+      .xs { font-size: 12px; fill: #475569; }
+      .m { font-size: 12px; font-weight: 700; fill: #B91C1C; }
+    </style>
+  </defs>
+  <rect x="0" y="0" width="960" height="520" rx="18" fill="#FFFFFF"/>
+
+  <!-- 가운데: 앱 -->
+  <rect x="380" y="150" width="200" height="220" rx="30" fill="#4F46E5"/>
+  <rect x="394" y="176" width="172" height="168" rx="16" fill="#F8FAFC"/>
+  <text x="480" y="210" class="h" text-anchor="middle">your app</text>
+  <text x="480" y="238" class="xs" text-anchor="middle">components · WebView</text>
+  <text x="480" y="256" class="xs" text-anchor="middle">local DB · files · prefs</text>
+  <text x="480" y="274" class="xs" text-anchor="middle">Keychain / Keystore</text>
+  <text x="480" y="292" class="xs" text-anchor="middle">network client</text>
+  <text x="480" y="322" class="s" text-anchor="middle">🔍 Phonetective</text>
+
+  <!-- 좌상: 다른 앱 -->
+  <rect x="30" y="30" width="300" height="190" rx="14" fill="#FEF2F2" stroke="#FCA5A5" stroke-width="2"/>
+  <text x="48" y="58" class="h">😈 a malicious app on the phone</text>
+  <text x="48" y="84" class="s">sends Intents, reads providers</text>
+  <text x="48" y="110" class="xs">· exported Activity/Service/Receiver</text>
+  <text x="48" y="128" class="xs">  without a permission</text>
+  <text x="48" y="146" class="xs">· ContentProvider SQL / path injection</text>
+  <text x="48" y="164" class="xs">· Intent redirection, mutable PendingIntent</text>
+  <text x="48" y="182" class="xs">· implicit broadcasts with secrets</text>
+  <text x="48" y="206" class="m">M3 · M4 · M8 / MASVS-PLATFORM</text>
+
+  <!-- 우상: 링크 -->
+  <rect x="630" y="30" width="300" height="190" rx="14" fill="#FEF2F2" stroke="#FCA5A5" stroke-width="2"/>
+  <text x="648" y="58" class="h">🔗 a crafted link</text>
+  <text x="648" y="84" class="s">deep links, URL schemes, web content</text>
+  <text x="648" y="110" class="xs">· deep link parameters into WebView,</text>
+  <text x="648" y="128" class="xs">  SQL, file paths or auth flows</text>
+  <text x="648" y="146" class="xs">· addJavascriptInterface / WKScript</text>
+  <text x="648" y="164" class="xs">  MessageHandler bridges</text>
+  <text x="648" y="182" class="xs">· file access from WebView</text>
+  <text x="648" y="206" class="m">M4 · M8 / MASVS-PLATFORM · CODE</text>
+
+  <!-- 좌하: 네트워크 -->
+  <rect x="30" y="300" width="300" height="190" rx="14" fill="#FEF2F2" stroke="#FCA5A5" stroke-width="2"/>
+  <text x="48" y="328" class="h">📡 someone on the network</text>
+  <text x="48" y="354" class="s">public Wi-Fi, proxies (MITM)</text>
+  <text x="48" y="380" class="xs">· cleartext HTTP, ATS exceptions</text>
+  <text x="48" y="398" class="xs">· trust-all TrustManager, hostname</text>
+  <text x="48" y="416" class="xs">  verifier off, SSL errors ignored</text>
+  <text x="48" y="434" class="xs">· user-installed CAs trusted</text>
+  <text x="48" y="452" class="xs">· no pinning for sensitive APIs</text>
+  <text x="48" y="476" class="m">M5 / MASVS-NETWORK</text>
+
+  <!-- 우하: 기기 -->
+  <rect x="630" y="300" width="300" height="190" rx="14" fill="#FEF2F2" stroke="#FCA5A5" stroke-width="2"/>
+  <text x="648" y="328" class="h">📱 a lost or rooted phone</text>
+  <text x="648" y="354" class="s">reads what the app left behind</text>
+  <text x="648" y="380" class="xs">· tokens in SharedPreferences /</text>
+  <text x="648" y="398" class="xs">  UserDefaults instead of Keystore</text>
+  <text x="648" y="416" class="xs">· secrets in logs, backups, external</text>
+  <text x="648" y="434" class="xs">  storage · hardcoded API keys</text>
+  <text x="648" y="452" class="xs">· weak crypto, debuggable builds</text>
+  <text x="648" y="476" class="m">M1 · M9 · M10 / MASVS-STORAGE · CRYPTO</text>
+
+  <!-- 화살표 -->
+  <line x1="330" y1="160" x2="384" y2="196" stroke="#DC2626" stroke-width="2.5" marker-end="url(#arrow)"/>
+  <line x1="630" y1="160" x2="576" y2="196" stroke="#DC2626" stroke-width="2.5" marker-end="url(#arrow)"/>
+  <line x1="330" y1="370" x2="384" y2="330" stroke="#DC2626" stroke-width="2.5" marker-end="url(#arrow)"/>
+  <line x1="630" y1="370" x2="576" y2="330" stroke="#DC2626" stroke-width="2.5" marker-end="url(#arrow)"/>
+</svg>
