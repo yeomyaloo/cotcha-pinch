@@ -1,11 +1,11 @@
 ---
 name: mobile-audit
-description: Audit an Android app's source code for security vulnerabilities with the cotcha-pinch MCP tools — check AndroidManifest.xml and the network security config, map the attack surface (exported activities/services/receivers/providers, deep links, WebView JavaScript bridges), follow entry point → sink paths, investigate each item by reading real code, record findings with the attacker who can exploit them (another app on the device, a crafted link, the network, a lost or rooted phone), re-verify every finding adversarially, and export a report mapped to the OWASP Mobile Top 10 and MASVS. Use when the user asks to security-review, audit, pentest-review or find vulnerabilities in an Android app (Java or Kotlin) — exported components, intent redirection, mutable PendingIntents, content provider SQL injection or path traversal, WebView JS bridges and file access, TLS validation turned off, cleartext traffic, tokens in SharedPreferences or logs, hardcoded secrets, weak crypto, debuggable or backup-enabled builds, vulnerable Gradle dependencies — given a local folder path or a public Git URL.
+description: Audit an Android or iOS app's source code for security vulnerabilities with the cotcha-pinch MCP tools — check AndroidManifest.xml and the network security config, map the attack surface (exported activities/services/receivers/providers, deep links, WebView JavaScript bridges), follow entry point → sink paths, investigate each item by reading real code, record findings with the attacker who can exploit them (another app on the device, a crafted link, the network, a lost or rooted phone), re-verify every finding adversarially, and export a report mapped to the OWASP Mobile Top 10 and MASVS. Use when the user asks to security-review, audit, pentest-review or find vulnerabilities in an Android app (Java or Kotlin) — exported components, intent redirection, mutable PendingIntents, content provider SQL injection or path traversal, WebView JS bridges and file access, TLS validation turned off, cleartext traffic, tokens in SharedPreferences or logs, hardcoded secrets, weak crypto, debuggable or backup-enabled builds, vulnerable Gradle dependencies — given a local folder path or a public Git URL.
 ---
 
-# Android app security audit (cotcha-pinch)
+# Android and iOS app security audit (cotcha-pinch)
 
-You lead a source-code security audit of an Android app using the `cotcha-pinch` MCP tools. The MCP server is the hands (manifest and config checks, code graph, file access, records); you are the brain (planning and judgment). Reply in the user's language.
+You lead a source-code security audit of an Android or iOS app using the `cotcha-pinch` MCP tools. The MCP server is the hands (manifest and config checks, code graph, file access, records); you are the brain (planning and judgment). Reply in the user's language.
 
 Static analysis can be wrong. **Every judgment must come from reading the actual code and manifest with `read_file`.** Only read the app — never build, install or run it.
 
@@ -28,6 +28,13 @@ A finding must name the attacker who can actually exploit it (`attacker` in `rec
    - `check_dependencies` — Gradle (and React Native npm) libraries with known vulnerabilities from OSV. Only coordinates and versions are sent.
 3. Build a short plan (aim for 6–12 items, highest risk first): COMMAND / CODE_LOADING / SQL / DESERIALIZATION / WEBVIEW / TLS / INTENT paths, then EXPORTED / PATH / CLEARTEXT / HARDCODED_SECRET / STORAGE / LOGGING, then DEBUGGABLE / BACKUP / WEAK_CRYPTO / WEAK_RANDOM. Group items in the same component or file. Also think about what patterns cannot show: exported components that act on extras without checking the caller, deep links that start sensitive flows (payments, account changes) without confirmation, and login/session handling.
 4. **Get the user's approval before investigating.** Show the plan as a numbered list (for each item: the component or file, category/CWE, the attacker, one line on what you will check), then stop and ask. They may drop items, add items, or reject the plan. Do not call `read_file` or start investigating until they answer. Skip the wait only if the user already said to go ahead without confirmation, or you are running unattended. If investigation turns up follow-up work outside the plan, list it and ask again.
+
+## iOS notes
+
+- `load_app` reports iOS when it finds `Info.plist` or `*.entitlements`. `check_config` covers App Transport Security (arbitrary loads, exception domains with insecure HTTP or old TLS), `UIFileSharingEnabled` and `get-task-allow`.
+- `list_components` shows `URL_SCHEME` (any app or web page can open `scheme://…`; the opener is not verified) and `UNIVERSAL_LINK` entries, with the file:line of the handler (`application(_:open:options:)`, `scene(_:openURLContexts:)`, `onOpenURL`, `continue userActivity`). Start there: query items and paths are attacker input (`link`, or `other_app` for URL schemes).
+- Swift and Objective-C have no call graph yet: every iOS code sink is a line-rule candidate. Read the file and trace the value back yourself with `grep_code`.
+- Defenses to look for: Keychain with `kSecAttrAccessibleWhenUnlockedThisDeviceOnly` instead of `UserDefaults`, `SecTrustEvaluateWithError` plus pinning before `.useCredential`, host allow-lists before loading a URL in `WKWebView`, bound SQLite parameters (`?` + `sqlite3_bind_*`), `CryptoKit` (`SHA256`, `AES.GCM`) instead of `Insecure` / CommonCrypto ECB.
 
 ## 2. Investigate (worker role)
 

@@ -31,11 +31,11 @@ public final class MobileMapping {
     static {
         put("M4", "MASVS-CODE", "CWE-89", "CWE-78", "CWE-77", "CWE-94", "CWE-22", "CWE-23", "CWE-502", "CWE-611", "CWE-20");
         put("M4", "MASVS-PLATFORM", "CWE-79", "CWE-749", "CWE-601", "CWE-939");
-        put("M5", "MASVS-NETWORK", "CWE-295", "CWE-297", "CWE-319", "CWE-311");
+        put("M5", "MASVS-NETWORK", "CWE-295", "CWE-297", "CWE-319", "CWE-311", "CWE-326");
         put("M8", "MASVS-PLATFORM", "CWE-926", "CWE-927", "CWE-940", "CWE-925", "CWE-1021");
         put("M8", "MASVS-RESILIENCE", "CWE-489");
         put("M9", "MASVS-STORAGE", "CWE-312", "CWE-922", "CWE-532", "CWE-530", "CWE-732", "CWE-200", "CWE-359");
-        put("M10", "MASVS-CRYPTO", "CWE-327", "CWE-328", "CWE-326", "CWE-321", "CWE-330", "CWE-338");
+        put("M10", "MASVS-CRYPTO", "CWE-327", "CWE-328", "CWE-321", "CWE-330", "CWE-338", "CWE-916");
         put("M1", "MASVS-CRYPTO", "CWE-798", "CWE-259");
         put("M3", "MASVS-AUTH", "CWE-287", "CWE-306", "CWE-639", "CWE-284", "CWE-285", "CWE-862", "CWE-863", "CWE-347");
         put("M2", "MASVS-CODE", "CWE-1104", "CWE-1395");

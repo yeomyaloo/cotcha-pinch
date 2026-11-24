@@ -2,7 +2,12 @@ package com.sherlockphones.workspace;
 
 import com.sherlockphones.android.AndroidScanner;
 import com.sherlockphones.android.AndroidScanner.AndroidApp;
+import com.sherlockphones.codegraph.AppScan;
 import com.sherlockphones.codegraph.CodeGraph;
+import com.sherlockphones.codegraph.Component;
+import com.sherlockphones.codegraph.StaticSink;
+import com.sherlockphones.ios.IosScanner;
+import com.sherlockphones.ios.IosScanner.IosApp;
 import com.sherlockphones.source.GitCloner;
 import com.sherlockphones.source.GitCloner.CloneResult;
 import com.sherlockphones.source.GitRevision;
@@ -16,6 +21,7 @@ import java.nio.file.Path;
 import java.time.OffsetDateTime;
 import java.util.Collection;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
@@ -92,7 +98,16 @@ public class AppRegistry {
     /** 매니페스트·설정·줄 단위 규칙으로 플랫폼 재료를 만들고, Java 소스와 합쳐 코드 그래프를 만든다 */
     private static LoadedApp analyze(String id, Path root, String gitUrl, String branch, String commit) {
         AndroidApp android = AndroidScanner.scan(root);
-        return new LoadedApp(id, root, gitUrl, branch, commit, CodeGraph.build(root, android.scan()), android, OffsetDateTime.now());
+        IosApp ios = IosScanner.scan(root);
+        // 한 저장소에 android/·ios/ 가 같이 있는 앱(Flutter, React Native)도 있으므로 두 플랫폼 재료를 합친다
+        AppScan scan = android.scan();
+        List<Component> components = new java.util.ArrayList<>(scan.components());
+        components.addAll(ios.components());
+        List<StaticSink> sinks = new java.util.ArrayList<>(scan.staticSinks());
+        sinks.addAll(ios.staticSinks());
+        AppScan merged = new AppScan(List.copyOf(components), List.copyOf(sinks), scan.sinkRules(), scan.knownReturnTypes(),
+                scan.bridgeAnnotations());
+        return new LoadedApp(id, root, gitUrl, branch, commit, CodeGraph.build(root, merged), android, ios, OffsetDateTime.now());
     }
 
     private LoadedApp put(LoadedApp repository) {

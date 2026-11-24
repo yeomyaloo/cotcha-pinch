@@ -70,8 +70,8 @@
   <text x="502" y="276" class="h">③ code graph</text>
   <text x="502" y="300" class="s">entry points → calls → sinks</text>
   <text x="502" y="324" class="xs">Java · Kotlin: cotcha-trail engine</text>
-  <text x="502" y="346" class="xs">  (call graph) · Swift, Obj-C:</text>
-  <text x="502" y="362" class="xs">  line rules first (iOS, next)</text>
+  <text x="502" y="346" class="xs">  (call graph) · Swift, Obj-C: line</text>
+  <text x="502" y="362" class="xs">  rules, paths after Swift parser</text>
   <text x="502" y="384" class="xs">entry: exported components, deep</text>
   <text x="502" y="400" class="xs">  links, URL schemes, JS bridges</text>
 

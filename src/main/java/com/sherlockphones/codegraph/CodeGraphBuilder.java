@@ -130,7 +130,7 @@ public class CodeGraphBuilder {
                         .findFirst()
                         .ifPresent(kotlinHandlers::addAll);
             }
-        } else if (type.isEmpty()) {
+        } else if (type.isEmpty() && !props.containsKey("source")) {
             props.put("source", "앱 소스에 클래스가 없음 (라이브러리 클래스이거나 Kotlin 파서를 쓸 수 없음). 호출 경로 없이 read_file·grep_code 로 볼 것");
         }
         List<String> handlerKeys = new ArrayList<>(handlers.stream().map(MethodInfo::key).toList());

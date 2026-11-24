@@ -4,12 +4,12 @@
     "name": "hwiju yeom",
     "url": "https://github.com/yeomyaloo"
   },
-  "description": "cotcha-pinch: Cotcha for mobile apps. Android app security audit in chat (MCP server + skill)",
+  "description": "cotcha-pinch: Cotcha for mobile apps. Android and iOS app security audit in chat (MCP server + skill)",
   "plugins": [
     {
       "name": "cotcha-pinch",
       "source": "./",
-      "description": "Audit Android app source code for security vulnerabilities in chat (manifest checks, exported components and deep links, Java and Kotlin call paths, findings by attacker, OWASP Mobile Top 10 / MASVS reports). Requires Java 17+."
+      "description": "Audit Android and iOS app source code for security vulnerabilities in chat (manifest checks, exported components and deep links, Java and Kotlin call paths, findings by attacker, OWASP Mobile Top 10 / MASVS reports). Requires Java 17+."
     }
   ]
 }

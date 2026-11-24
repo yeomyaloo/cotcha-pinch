@@ -7,7 +7,7 @@
 
 # cotcha-pinch
 
-> **Cotcha** = *"Caught ya!"* **cotcha-pinch** is Cotcha for phones: it follows what other apps, links and the network can send into your Android (and soon iOS) app, catches the security bugs on the way, and keeps them in a jar.
+> **Cotcha** = *"Caught ya!"* **cotcha-pinch** is Cotcha for phones: it follows what other apps, links and the network can send into your Android or iOS app, catches the security bugs on the way, and keeps them in a jar.
 > *Pinch to catch.*
 
 | Repository | The name means | Role |
@@ -20,7 +20,7 @@
 
 <p align="center">
   <img alt="Android" src="https://img.shields.io/badge/Android-Java%20%2B%20Kotlin-3DDC84">
-  <img alt="iOS" src="https://img.shields.io/badge/iOS-planned-lightgrey">
+  <img alt="iOS" src="https://img.shields.io/badge/iOS-config%20%2B%20Swift%20rules-147EFB">
   <img alt="license" src="https://img.shields.io/badge/license-Apache--2.0-blue">
 </p>
 
@@ -36,7 +36,7 @@ It is the mobile sibling of [cotcha-pocket](https://github.com/yeomyaloo/cotcha-
 - **Reads source only.** It never builds, installs or runs the app, and needs no emulator or device.
 - **Fewer false alarms.** Pattern scanners flag every `WebView` and `rawQuery`. cotcha-pinch asks the next question: *can another app, a link, the network or someone holding the phone actually reach it?*
 
-> **Status:** Android works for Java and Kotlin (both with call paths). iOS is next; see [Progress](#progress).
+> **Status:** Android works for Java and Kotlin, with call paths. iOS works with Info.plist / entitlements checks and Swift / Objective-C line rules; its findings have no call paths until the Swift parser lands. See [Progress](#progress).
 
 ## How it works
 
@@ -61,17 +61,17 @@ Every check is tied to one of four attackers, and the verifier judges a finding 
 
 ## What it checks
 
-✅ Android phase 1 · ⏳ planned
+✅ done (iOS code checks are line rules: candidates without call paths) · ⏳ planned
 
 | Area | Android | iOS | OWASP Mobile |
 |---|---|---|---|
-| Misconfiguration | ✅ exported components without a permission (CWE-926, launcher and deep-link activities are entry points, not findings), `debuggable` (CWE-489), `allowBackup` (CWE-530) | ⏳ URL schemes, entitlements | M8 |
-| Insecure communication | ✅ `usesCleartextTraffic` and cleartext domains, user CAs in the network security config, trust-all `X509TrustManager` (classes and anonymous classes), `HostnameVerifier` returning `true`, `SslErrorHandler.proceed()` (CWE-295, CWE-319) | ⏳ ATS exceptions, `URLSession` delegates | M5 |
-| Platform interaction | ✅ intent redirection (`getParcelableExtra`, CWE-940), `PendingIntent` (CWE-927), `addJavascriptInterface`, file URL access, `loadUrl`/`loadData`/`evaluateJavascript` (CWE-749, CWE-79), `getSerializableExtra` (CWE-502), dynamic code loading (CWE-94) | ⏳ `WKScriptMessageHandler`, `WKWebView` | M4 |
-| Input validation | ✅ `SQLiteDatabase` / `SupportSQLiteDatabase` / `SQLiteQueryBuilder` (CWE-89), file paths (CWE-22), `Runtime.exec` (CWE-78), DOM/SAX XML (CWE-611) | ⏳ `sqlite3_exec`, paths | M4 |
-| Data storage | ✅ secrets in `SharedPreferences` (CWE-312), `MODE_WORLD_*` (CWE-732), external storage (CWE-922), secrets in `Log` (CWE-532) | ⏳ `UserDefaults`, `NSLog` | M9 |
-| Cryptography | ✅ `Cipher`/`MessageDigest` algorithms, hardcoded `SecretKeySpec` keys (CWE-327, CWE-328, CWE-321), `java.util.Random` (CWE-330) | ⏳ CommonCrypto | M10 |
-| Credentials | ✅ AWS, Google, Stripe, GitHub, Slack and LLM keys, private keys, `password = "…"` in code, XML, properties and Gradle files (masked in sink lists, CWE-798) | ⏳ | M1 |
+| Misconfiguration | ✅ exported components without a permission (CWE-926, launcher and deep-link activities are entry points, not findings), `debuggable` (CWE-489), `allowBackup` (CWE-530) | ✅ `get-task-allow` in entitlements (CWE-489); URL schemes and universal links become entry points | M8 |
+| Insecure communication | ✅ `usesCleartextTraffic` and cleartext domains, user CAs in the network security config, trust-all `X509TrustManager` (classes and anonymous classes), `HostnameVerifier` returning `true`, `SslErrorHandler.proceed()` (CWE-295, CWE-319) | ✅ ATS: `NSAllowsArbitraryLoads` (also in web content and media), exception domains with insecure HTTP or TLS 1.0/1.1 (CWE-319, CWE-326); `URLSession` delegates that trust any server, `allowsAnyHTTPSCertificate`, Alamofire `DisabledTrustEvaluator` (CWE-295) | M5 |
+| Platform interaction | ✅ intent redirection (`getParcelableExtra`, CWE-940), `PendingIntent` (CWE-927), `addJavascriptInterface`, file URL access, `loadUrl`/`loadData`/`evaluateJavascript` (CWE-749, CWE-79), `getSerializableExtra` (CWE-502), dynamic code loading (CWE-94) | ✅ `WKScriptMessageHandler` bridges and `UIWebView` (CWE-749), `load(URLRequest)`, `loadHTMLString`, `evaluateJavaScript` (CWE-79) | M4 |
+| Input validation | ✅ `SQLiteDatabase` / `SupportSQLiteDatabase` / `SQLiteQueryBuilder` (CWE-89), file paths (CWE-22), `Runtime.exec` (CWE-78), DOM/SAX XML (CWE-611) | ✅ `sqlite3_exec` / `sqlite3_prepare`, FMDB `executeQuery` / `executeUpdate` (CWE-89) | M4 |
+| Data storage | ✅ secrets in `SharedPreferences` (CWE-312), `MODE_WORLD_*` (CWE-732), external storage (CWE-922), secrets in `Log` (CWE-532) | ✅ secrets in `UserDefaults` / `NSUserDefaults` (CWE-312), `kSecAttrAccessibleAlways` and `UIFileSharingEnabled` (CWE-922), secrets in `print` / `NSLog` / `os_log` (CWE-532) | M9 |
+| Cryptography | ✅ `Cipher`/`MessageDigest` algorithms, hardcoded `SecretKeySpec` keys (CWE-327, CWE-328, CWE-321), `java.util.Random` (CWE-330) | ✅ `CC_MD5` / `CC_SHA1`, `Insecure.MD5` / `SHA1` (CWE-328), DES / RC4 / ECB in CommonCrypto (CWE-327), `rand()` / `random()` (CWE-330) | M10 |
+| Credentials | ✅ AWS, Google, Stripe, GitHub, Slack and LLM keys, private keys, `password = "…"` in code, XML, properties and Gradle files (masked in sink lists, CWE-798) | ✅ the same key patterns in Swift, Objective-C, plist, xcconfig and strings files | M1 |
 | Supply chain | ✅ Gradle, version catalogs, lockfiles (and npm for React Native) → OSV | ⏳ CocoaPods, SwiftPM | M2 |
 
 Not in scope: compiled APK/IPA analysis, runtime instrumentation (Frida), binary protections such as obfuscation and anti-tampering (M7).
@@ -132,7 +132,7 @@ Settings (environment variables): `SHERLOCK_PHONES_HOME` (default `~/.sherlock-p
 
 ## Benchmark
 
-[`benchmark/`](benchmark/README.md) has `bank-app`, an Android app with **23 real vulnerabilities** (7 config, 13 Java, 3 Kotlin) and **11 safe look-alikes**, plus an answer key kept outside the app folder.
+[`benchmark/`](benchmark/README.md) has `bank-app`, an Android app with **23 real vulnerabilities** (7 config, 13 Java, 3 Kotlin) and **11 safe look-alikes**, plus an answer key kept outside the app folder. `bank-ios` does the same for iOS (Swift and Objective-C): **15 real vulnerabilities** and **6 traps**.
 
 - `BenchmarkTest` (runs in CI) checks that every item becomes a sink, nothing else does, and each code vulnerability is reachable from its entry point.
 - `benchmark/score.py` scores SARIF reports from real audits: recall, precision, trap false positives, and whether repeated audits agree.
@@ -146,7 +146,7 @@ Settings (environment variables): `SHERLOCK_PHONES_HOME` (default `~/.sherlock-p
 | 1-3 | Kotlin call graphs on cotcha-trail 0.4.0 (`KotlinGraphSupport`): Kotlin components, handlers, Android rules on Kotlin calls; line rules fall back only where the native parser cannot load | ✅ Done |
 | 1-1 | Use the shared engine cotcha-trail (0.3.0, `JavaGraphSupport`) instead of a copied Java engine; the benchmark result is unchanged | ✅ Done |
 | 1 | Android: manifest and network security config checks, exported components and JS bridges as entry points, Android Java sinks, trust-all TLS detection, Kotlin and storage/log/secret line rules, findings by attacker, OWASP Mobile / MASVS reports, `mobile-audit` skill, benchmark app with an answer key, CI | ✅ Done |
-| 2 | iOS: Info.plist / entitlements checks, Swift and Objective-C line rules, iOS benchmark app | ⏳ Planned |
+| 2 | iOS: Info.plist (ATS, file sharing, URL schemes) and entitlements (get-task-allow, universal links) checks, Swift and Objective-C line rules, `bank-ios` benchmark app (15 vulnerabilities, 6 traps) | ✅ Done |
 | 3 | Swift parsing in cotcha-trail (tree-sitter), and Java ↔ Kotlin call links | ⏳ Planned |
 | 4 | CocoaPods and SwiftPM dependencies | ⏳ Planned |
 
@@ -171,6 +171,7 @@ src/main/java/com/sherlockphones/
 ├── SherlockPhones.java       stdio MCP server, tool and prompt registration
 ├── Prompts.java              mobile_audit, verify_findings prompts, server instructions
 ├── android/                  manifest reader (safe XML), config checks, Android rules, scanner
+├── ios/                      Info.plist / entitlements checks (Plist), Swift and Objective-C line rules, scanner
 ├── codegraph/                app graph on top of cotcha-trail (components, JS bridges, trust-all TLS, Java and Kotlin), line scanner, categories
 ├── dependency/               build files + OSV, scan history (same as mcp-code-agent)
 ├── findings/                 findings with attacker, OWASP Mobile / MASVS mapping, reports
@@ -210,7 +211,7 @@ Use cotcha-pinch only on apps you own or are authorized to test. Automated findi
 - **소스만 읽어요.** 앱을 빌드하거나 설치하거나 실행하지 않아요. 에뮬레이터나 실제 기기도 필요 없어요.
 - **헛경보가 적어요.** 패턴 검사기는 `WebView`, `rawQuery`만 보이면 다 경고해요. cotcha-pinch는 한 걸음 더 물어요. *다른 앱, 링크, 네트워크, 폰을 손에 쥔 사람이 정말 거기까지 닿을 수 있나?*
 
-> **상태:** 안드로이드는 Java와 Kotlin 모두 호출 경로까지 봐요. 다음은 iOS예요. [진행 상황](#진행-상황)을 보세요.
+> **상태:** 안드로이드는 Java와 Kotlin 모두 호출 경로까지 봐요. iOS는 Info.plist·entitlements 검사와 Swift·Objective-C 줄 단위 규칙으로 봐요(Swift 파서가 생기기 전까지 호출 경로는 없어요). [진행 상황](#진행-상황)을 보세요.
 
 ## 동작 방식
 
@@ -240,17 +241,17 @@ Use cotcha-pinch only on apps you own or are authorized to test. Automated findi
 
 ## 검사하는 것
 
-✅ 안드로이드 1단계 · ⏳ 예정
+✅ 됨 (iOS 코드 검사는 줄 단위 규칙: 호출 경로 없는 후보) · ⏳ 예정
 
 | 분야 | Android | iOS | OWASP Mobile |
 |---|---|---|---|
-| 설정 오류 | ✅ 권한 없이 외부에 열린 컴포넌트(CWE-926, 런처·딥링크 화면은 발견이 아니라 입구로 봄), `debuggable`(CWE-489), `allowBackup`(CWE-530) | ⏳ URL 스킴, entitlements | M8 |
-| 안전하지 않은 통신 | ✅ `usesCleartextTraffic`과 평문 허용 도메인, 네트워크 보안 설정의 사용자 인증서, 모든 인증서를 믿는 `X509TrustManager`(클래스와 익명 클래스), `true`만 돌려주는 `HostnameVerifier`, `SslErrorHandler.proceed()`(CWE-295, CWE-319) | ⏳ ATS 예외, `URLSession` delegate | M5 |
-| 플랫폼 연동 | ✅ Intent 리다이렉션(`getParcelableExtra`, CWE-940), `PendingIntent`(CWE-927), `addJavascriptInterface`·파일 URL 접근·`loadUrl`·`loadData`·`evaluateJavascript`(CWE-749, CWE-79), `getSerializableExtra`(CWE-502), 동적 코드 로딩(CWE-94) | ⏳ `WKScriptMessageHandler`, `WKWebView` | M4 |
-| 입력 검증 | ✅ `SQLiteDatabase`·`SupportSQLiteDatabase`·`SQLiteQueryBuilder`(CWE-89), 파일 경로(CWE-22), `Runtime.exec`(CWE-78), DOM·SAX XML(CWE-611) | ⏳ `sqlite3_exec`, 경로 | M4 |
-| 데이터 저장 | ✅ `SharedPreferences`의 비밀값(CWE-312), `MODE_WORLD_*`(CWE-732), 외부 저장소(CWE-922), `Log`의 비밀값(CWE-532) | ⏳ `UserDefaults`, `NSLog` | M9 |
-| 암호화 | ✅ `Cipher`·`MessageDigest` 알고리즘, 하드코딩된 `SecretKeySpec` 키(CWE-327, CWE-328, CWE-321), `java.util.Random`(CWE-330) | ⏳ CommonCrypto | M10 |
-| 인증 정보 | ✅ 코드·XML·properties·Gradle 파일의 AWS·Google·Stripe·GitHub·Slack·LLM 키, 개인 키, `password = "…"` (위험 지점 목록에서 가림, CWE-798) | ⏳ | M1 |
+| 설정 오류 | ✅ 권한 없이 외부에 열린 컴포넌트(CWE-926, 런처·딥링크 화면은 발견이 아니라 입구로 봄), `debuggable`(CWE-489), `allowBackup`(CWE-530) | ✅ entitlements 의 `get-task-allow`(CWE-489). URL 스킴·유니버설 링크는 입구가 됨 | M8 |
+| 안전하지 않은 통신 | ✅ `usesCleartextTraffic`과 평문 허용 도메인, 네트워크 보안 설정의 사용자 인증서, 모든 인증서를 믿는 `X509TrustManager`(클래스와 익명 클래스), `true`만 돌려주는 `HostnameVerifier`, `SslErrorHandler.proceed()`(CWE-295, CWE-319) | ✅ ATS: `NSAllowsArbitraryLoads`(웹 콘텐츠·미디어 포함), 평문 HTTP·TLS 1.0/1.1 을 허용한 예외 도메인(CWE-319, CWE-326). 아무 서버나 믿는 `URLSession` delegate, `allowsAnyHTTPSCertificate`, Alamofire `DisabledTrustEvaluator`(CWE-295) | M5 |
+| 플랫폼 연동 | ✅ Intent 리다이렉션(`getParcelableExtra`, CWE-940), `PendingIntent`(CWE-927), `addJavascriptInterface`·파일 URL 접근·`loadUrl`·`loadData`·`evaluateJavascript`(CWE-749, CWE-79), `getSerializableExtra`(CWE-502), 동적 코드 로딩(CWE-94) | ✅ `WKScriptMessageHandler` 브리지·`UIWebView`(CWE-749), `load(URLRequest)`·`loadHTMLString`·`evaluateJavaScript`(CWE-79) | M4 |
+| 입력 검증 | ✅ `SQLiteDatabase`·`SupportSQLiteDatabase`·`SQLiteQueryBuilder`(CWE-89), 파일 경로(CWE-22), `Runtime.exec`(CWE-78), DOM·SAX XML(CWE-611) | ✅ `sqlite3_exec`·`sqlite3_prepare`, FMDB `executeQuery`·`executeUpdate`(CWE-89) | M4 |
+| 데이터 저장 | ✅ `SharedPreferences`의 비밀값(CWE-312), `MODE_WORLD_*`(CWE-732), 외부 저장소(CWE-922), `Log`의 비밀값(CWE-532) | ✅ `UserDefaults`·`NSUserDefaults`의 비밀값(CWE-312), `kSecAttrAccessibleAlways`·`UIFileSharingEnabled`(CWE-922), `print`·`NSLog`·`os_log`의 비밀값(CWE-532) | M9 |
+| 암호화 | ✅ `Cipher`·`MessageDigest` 알고리즘, 하드코딩된 `SecretKeySpec` 키(CWE-327, CWE-328, CWE-321), `java.util.Random`(CWE-330) | ✅ `CC_MD5`·`CC_SHA1`, `Insecure.MD5`·`SHA1`(CWE-328), CommonCrypto 의 DES·RC4·ECB(CWE-327), `rand()`·`random()`(CWE-330) | M10 |
+| 인증 정보 | ✅ 코드·XML·properties·Gradle 파일의 AWS·Google·Stripe·GitHub·Slack·LLM 키, 개인 키, `password = "…"` (위험 지점 목록에서 가림, CWE-798) | ✅ Swift·Objective-C·plist·xcconfig·strings 파일에서도 같은 키 패턴 | M1 |
 | 공급망 | ✅ Gradle, 버전 카탈로그, lockfile(React Native면 npm) → OSV | ⏳ CocoaPods, SwiftPM | M2 |
 
 범위 밖: 빌드된 APK·IPA 분석, 실행 중 계측(Frida), 난독화·위변조 방지 같은 바이너리 보호(M7).
@@ -311,7 +312,7 @@ Claude가 앱을 불러와 번호 붙은 계획(컴포넌트나 파일, 분류·
 
 ## 벤치마크
 
-[`benchmark/`](benchmark/README.md)에 안드로이드 앱 `bank-app`이 있어요. **진짜 취약점 23개**(설정 7, Java 13, Kotlin 3)와 **안전한 함정 11개**를 섞었고, 정답 파일은 앱 폴더 밖에 둬요.
+[`benchmark/`](benchmark/README.md)에 안드로이드 앱 `bank-app`이 있어요. **진짜 취약점 23개**(설정 7, Java 13, Kotlin 3)와 **안전한 함정 11개**를 섞었고, 정답 파일은 앱 폴더 밖에 둬요. iOS 앱 `bank-ios`(Swift·Objective-C)도 같은 방식으로 **진짜 취약점 15개**와 **함정 6개**를 담았어요.
 
 - `BenchmarkTest`(CI에서 돈다)는 모든 항목이 위험 지점이 되고 그 밖의 것은 없으며, 코드 취약점마다 입구에서 이어지는지 확인해요.
 - `benchmark/score.py`는 실제 분석의 SARIF 보고서를 채점해요: 재현율, 정밀도, 함정 오탐, 여러 번 돌려도 같은 결론인지.
@@ -325,7 +326,7 @@ Claude가 앱을 불러와 번호 붙은 계획(컴포넌트나 파일, 분류·
 | 1-3 | cotcha-trail 0.4.0(`KotlinGraphSupport`)으로 Kotlin 호출 그래프: Kotlin 컴포넌트·입력 함수, Kotlin 호출에 안드로이드 규칙. 네이티브 파서를 못 쓰는 환경에서만 줄 단위 규칙으로 대신 | ✅ 완료 |
 | 1-1 | 복사해 둔 Java 엔진 대신 공용 엔진 cotcha-trail(0.3.0, `JavaGraphSupport`)을 씀. 벤치마크 결과는 그대로 | ✅ 완료 |
 | 1 | Android: 매니페스트·네트워크 보안 설정 검사, 외부에 열린 컴포넌트·JS 브리지를 입구로, 안드로이드 Java 위험 지점, 모든 인증서를 믿는 TLS 구현 찾기, Kotlin과 저장소·로그·비밀값 줄 단위 규칙, 공격자별 발견, OWASP Mobile·MASVS 보고서, `mobile-audit` 스킬, 정답이 있는 벤치마크 앱, CI | ✅ 완료 |
-| 2 | iOS: Info.plist·entitlements 검사, Swift·Objective-C 줄 단위 규칙, iOS 벤치마크 앱 | ⏳ 예정 |
+| 2 | iOS: Info.plist(ATS, 파일 공유, URL 스킴)·entitlements(get-task-allow, 유니버설 링크) 검사, Swift·Objective-C 줄 단위 규칙, `bank-ios` 벤치마크 앱(취약점 15개, 함정 6개) | ✅ 완료 |
 | 3 | cotcha-trail 에 Swift 파서(tree-sitter), Java ↔ Kotlin 호출 연결 | ⏳ 예정 |
 | 4 | CocoaPods·SwiftPM 라이브러리 검사 | ⏳ 예정 |
 
@@ -350,6 +351,7 @@ src/main/java/com/sherlockphones/
 ├── SherlockPhones.java       stdio MCP 서버, 도구·프롬프트 등록
 ├── Prompts.java              mobile_audit, verify_findings 프롬프트, 서버 안내문
 ├── android/                  매니페스트 읽기(안전한 XML), 설정 검사, 안드로이드 규칙, 스캐너
+├── ios/                      Info.plist·entitlements 검사(Plist), Swift·Objective-C 줄 단위 규칙, 스캐너
 ├── codegraph/                cotcha-trail 위의 앱 그래프(컴포넌트, JS 브리지, 모든 인증서를 믿는 TLS, Java·Kotlin), 줄 단위 스캐너, 분류
 ├── dependency/               빌드 파일 + OSV, 검사 기록 (mcp-code-agent 와 같음)
 ├── findings/                 공격자가 붙은 발견, OWASP Mobile·MASVS 분류, 보고서

@@ -1,0 +1,221 @@
+{
+  "name": "bank-ios",
+  "description": "iOS 은행 앱 예제 (Swift·Objective-C). 진짜 취약점 15개(설정 4, 코드 11)와 같은 분류의 안전한 코드 6개를 섞었다. Swift 파서가 없어서 모든 위험 지점은 경로 없는 후보다.",
+  "vulnerabilities": [
+    {
+      "id": "ats-insecure-http-rates",
+      "category": "CLEARTEXT",
+      "cwe": ["CWE-319"],
+      "file": "BankiOS/Info.plist",
+      "lines": [26, 30],
+      "sinkLine": 28,
+      "entryPoint": null,
+      "attacker": "network",
+      "why": "rates 도메인에 ATS 예외로 평문 HTTP 허용"
+    },
+    {
+      "id": "ats-tls10-legacy",
+      "category": "TLS",
+      "cwe": ["CWE-326", "CWE-327", "CWE-757", "CWE-295"],
+      "file": "BankiOS/Info.plist",
+      "lines": [31, 35],
+      "sinkLine": 33,
+      "entryPoint": null,
+      "attacker": "network",
+      "why": "legacy 도메인에 TLS 1.0 허용"
+    },
+    {
+      "id": "file-sharing-enabled",
+      "category": "STORAGE",
+      "cwe": ["CWE-922", "CWE-200", "CWE-530", "CWE-552"],
+      "file": "BankiOS/Info.plist",
+      "lines": [43, 44],
+      "sinkLine": 43,
+      "entryPoint": null,
+      "attacker": "device",
+      "why": "Documents 폴더(토큰이 든 파일 등)를 파일 앱·컴퓨터로 꺼낼 수 있다"
+    },
+    {
+      "id": "entitlements-get-task-allow",
+      "category": "DEBUGGABLE",
+      "cwe": ["CWE-489"],
+      "file": "BankiOS/BankiOS.entitlements",
+      "lines": [9, 10],
+      "sinkLine": 9,
+      "entryPoint": null,
+      "attacker": "device",
+      "why": "배포용 entitlements 에 get-task-allow=true"
+    },
+    {
+      "id": "tls-trust-any-server",
+      "category": "TLS",
+      "cwe": ["CWE-295"],
+      "file": "BankiOS/APIClient.swift",
+      "lines": [4, 14],
+      "sinkLine": 12,
+      "entryPoint": null,
+      "attacker": "network",
+      "why": "서버 인증서를 검증하지 않고 그대로 믿는다"
+    },
+    {
+      "id": "sqlite-exec-injection",
+      "category": "SQL",
+      "cwe": ["CWE-89"],
+      "file": "BankiOS/Storage.swift",
+      "lines": [9, 11],
+      "sinkLine": 10,
+      "entryPoint": null,
+      "attacker": "link",
+      "why": "bankapp://payees?remove= 값을 SQL 문자열에 넣는다"
+    },
+    {
+      "id": "md5-pin-hash",
+      "category": "WEAK_CRYPTO",
+      "cwe": ["CWE-328", "CWE-327", "CWE-916", "CWE-759"],
+      "file": "BankiOS/Storage.swift",
+      "lines": [27, 29],
+      "sinkLine": 28,
+      "entryPoint": null,
+      "attacker": "device",
+      "why": "PIN 을 소금 없는 MD5 로 해시한다"
+    },
+    {
+      "id": "hardcoded-client-secret",
+      "category": "HARDCODED_SECRET",
+      "cwe": ["CWE-798"],
+      "file": "BankiOS/Storage.swift",
+      "lines": [36, 38],
+      "sinkLine": 37,
+      "entryPoint": null,
+      "attacker": "device",
+      "why": "결제 API 클라이언트 비밀값이 앱에 들어 있다"
+    },
+    {
+      "id": "userdefaults-auth-token",
+      "category": "STORAGE",
+      "cwe": ["CWE-312", "CWE-922", "CWE-311"],
+      "file": "BankiOS/TokenStore.swift",
+      "lines": [7, 7],
+      "sinkLine": 7,
+      "entryPoint": null,
+      "attacker": "device",
+      "why": "인증 토큰을 Keychain 이 아닌 UserDefaults 에 저장한다"
+    },
+    {
+      "id": "log-auth-token",
+      "category": "LOGGING",
+      "cwe": ["CWE-532", "CWE-200"],
+      "file": "BankiOS/TokenStore.swift",
+      "lines": [8, 8],
+      "sinkLine": 8,
+      "entryPoint": null,
+      "attacker": "device",
+      "why": "인증 토큰을 로그에 남긴다"
+    },
+    {
+      "id": "keychain-accessible-always",
+      "category": "STORAGE",
+      "cwe": ["CWE-922", "CWE-312"],
+      "file": "BankiOS/TokenStore.swift",
+      "lines": [20, 28],
+      "sinkLine": 25,
+      "entryPoint": null,
+      "attacker": "device",
+      "why": "리프레시 토큰을 잠긴 폰에서도 읽히는 kSecAttrAccessibleAlways 로 저장한다"
+    },
+    {
+      "id": "objc-saved-password",
+      "category": "STORAGE",
+      "cwe": ["CWE-312", "CWE-922", "CWE-256"],
+      "file": "BankiOS/LegacyLogin.m",
+      "lines": [9, 11],
+      "sinkLine": 10,
+      "entryPoint": null,
+      "attacker": "device",
+      "why": "비밀번호를 평문으로 NSUserDefaults 에 저장한다"
+    },
+    {
+      "id": "webview-js-bridge",
+      "category": "WEBVIEW",
+      "cwe": ["CWE-749", "CWE-940"],
+      "file": "BankiOS/WebViewController.swift",
+      "lines": [21, 21],
+      "sinkLine": 21,
+      "entryPoint": null,
+      "attacker": "link",
+      "why": "딥링크로 받은 아무 페이지에 메시지 핸들러(브리지)를 연다"
+    },
+    {
+      "id": "webview-load-deeplink-url",
+      "category": "WEBVIEW",
+      "cwe": ["CWE-79", "CWE-601", "CWE-939", "CWE-940", "CWE-749", "CWE-20"],
+      "file": "BankiOS/WebViewController.swift",
+      "lines": [24, 24],
+      "sinkLine": 24,
+      "entryPoint": null,
+      "attacker": "link",
+      "why": "bankapp://...?page= 의 아무 주소나 WKWebView 에 띄운다"
+    },
+    {
+      "id": "webview-token-to-page",
+      "category": "WEBVIEW",
+      "cwe": ["CWE-749", "CWE-200", "CWE-359", "CWE-79"],
+      "file": "BankiOS/WebViewController.swift",
+      "lines": [27, 32],
+      "sinkLine": 30,
+      "entryPoint": null,
+      "attacker": "link",
+      "why": "브리지 메시지를 보낸 아무 페이지에 인증 토큰을 넘겨준다"
+    }
+  ],
+  "safe": [
+    {
+      "id": "tls-pinned-client",
+      "category": "TLS",
+      "file": "BankiOS/APIClient.swift",
+      "lines": [16, 36],
+      "sinkLine": 30,
+      "why": "시스템 검증(SecTrustEvaluateWithError)과 공개 키 고정을 통과한 뒤에만 믿는다"
+    },
+    {
+      "id": "sqlite-bound-query",
+      "category": "SQL",
+      "file": "BankiOS/Storage.swift",
+      "lines": [13, 22],
+      "sinkLine": 15,
+      "why": "바인드 변수(?)를 쓴다"
+    },
+    {
+      "id": "md5-cache-key",
+      "category": "WEAK_CRYPTO",
+      "file": "BankiOS/Storage.swift",
+      "lines": [31, 33],
+      "sinkLine": 32,
+      "why": "이미지 캐시 키라서 보안에 쓰이지 않는다"
+    },
+    {
+      "id": "userdefaults-onboarding-flag",
+      "category": "STORAGE",
+      "file": "BankiOS/TokenStore.swift",
+      "lines": [12, 12],
+      "sinkLine": 12,
+      "why": "온보딩을 봤는지 나타내는 true 값이라 비밀이 아니다"
+    },
+    {
+      "id": "log-constant-message",
+      "category": "LOGGING",
+      "file": "BankiOS/TokenStore.swift",
+      "lines": [13, 13],
+      "sinkLine": 13,
+      "why": "고정된 문구만 남긴다"
+    },
+    {
+      "id": "webview-help-constant-html",
+      "category": "WEBVIEW",
+      "file": "BankiOS/WebViewController.swift",
+      "lines": [38, 45],
+      "sinkLine": 43,
+      "why": "앱에 박힌 고정 HTML 만 띄운다"
+    }
+  ]
+}

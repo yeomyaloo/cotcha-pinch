@@ -78,7 +78,27 @@ public final class XmlTree {
     }
 
     public static Document parse(Path file) throws IOException {
+        return parse(file, false);
+    }
+
+    /** Apple 의 &lt;!DOCTYPE plist PUBLIC ...&gt; 은 받는 plist 판 (Info.plist, *.entitlements) */
+    public static Document parsePlist(Path file) throws IOException {
+        return parse(file, true);
+    }
+
+    /** 내부 선언([...])이 없는 공개 DOCTYPE 한 줄. 외부 DTD 는 어차피 읽지 않는다 */
+    private static final java.util.regex.Pattern PUBLIC_DOCTYPE = java.util.regex.Pattern.compile("<!DOCTYPE\\s+plist\\s[^>\\[]*>");
+
+    private static Document parse(Path file, boolean allowPlistDoctype) throws IOException {
         List<String> lines = Files.readAllLines(file, StandardCharsets.UTF_8);
+        String text = String.join("\n", lines);
+        if (allowPlistDoctype) {
+            // 줄 번호가 그대로 남도록 공백으로 바꾼다. 다른 DOCTYPE(내부 선언 포함)은 그대로 두어 파서가 거절하게 한다
+            java.util.regex.Matcher m = PUBLIC_DOCTYPE.matcher(text);
+            if (m.find()) {
+                text = text.substring(0, m.start()) + m.group().replaceAll("[^\\n]", " ") + text.substring(m.end());
+            }
+        }
         try {
             SAXParserFactory factory = SAXParserFactory.newInstance();
             factory.setNamespaceAware(false);
@@ -91,7 +111,7 @@ public final class XmlTree {
             parser.setProperty(XMLConstants.ACCESS_EXTERNAL_DTD, "");
             parser.setProperty(XMLConstants.ACCESS_EXTERNAL_SCHEMA, "");
             Handler handler = new Handler(lines);
-            parser.parse(file.toFile(), handler);
+            parser.parse(new org.xml.sax.InputSource(new java.io.StringReader(text)), handler);
             if (handler.root == null) {
                 throw new IOException("빈 XML: " + file);
             }

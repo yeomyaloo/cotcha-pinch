@@ -1,6 +1,6 @@
 # cotcha-pinch
 
-Android(다음 단계 iOS) 앱 소스코드의 보안 취약점을 찾는 Claude Code 플러그인 + stdio MCP 서버. Claude가 판단하고, 서버는 앱 불러오기·설정 검사·코드 그래프·파일 읽기·발견 기록·보고서를 맡는다. Java·Kotlin 파싱·구조·호출 연결은 Cotcha 공용 엔진 cotcha-trail(로컬 `../core-code-agent`, 좌표 `com.codeagent:core-code-agent`)의 `JavaGraphSupport`·`KotlinGraphSupport` 를 쓴다. Cotcha 제품군(cotcha-trail·net·pocket·jar)의 모바일 버전. 처음 이름은 Sherlock Phones 였고 GitHub 저장소는 `yeomyaloo/cotcha-pinch`(로컬 폴더 이름은 phonetective). 안쪽 이름(패키지 `com.sherlockphones`, 클래스 `SherlockPhones`·`SherlockTools`, 데이터 폴더 `~/.sherlock-phones`, 환경 변수 `SHERLOCK_PHONES_*`, Gradle 프로젝트 이름)은 그대로 둔다.
+Android·iOS 앱 소스코드의 보안 취약점을 찾는 Claude Code 플러그인 + stdio MCP 서버. Claude가 판단하고, 서버는 앱 불러오기·설정 검사·코드 그래프·파일 읽기·발견 기록·보고서를 맡는다. Java·Kotlin 파싱·구조·호출 연결은 Cotcha 공용 엔진 cotcha-trail(로컬 `../core-code-agent`, 좌표 `com.codeagent:core-code-agent`)의 `JavaGraphSupport`·`KotlinGraphSupport` 를 쓴다. Cotcha 제품군(cotcha-trail·net·pocket·jar)의 모바일 버전. 처음 이름은 Sherlock Phones 였고 GitHub 저장소는 `yeomyaloo/cotcha-pinch`(로컬 폴더 이름은 phonetective). 안쪽 이름(패키지 `com.sherlockphones`, 클래스 `SherlockPhones`·`SherlockTools`, 데이터 폴더 `~/.sherlock-phones`, 환경 변수 `SHERLOCK_PHONES_*`, Gradle 프로젝트 이름)은 그대로 둔다.
 
 ## 명령
 
@@ -19,7 +19,7 @@ claude plugin validate .                    # 플러그인 구조 검사 (CLAUDE
 
 - `codegraph/`: 플랫폼 공통. core 위의 앱 그래프(`CodeGraphBuilder`: 컴포넌트·JS 브리지 진입점, 아무 인증서나 믿는 TLS, 줄·설정 위험 지점), 메모리 색인(`CodeGraph`), 줄 단위 스캐너(`LineScanner`, `LineRule`), 플랫폼이 넘기는 재료(`AppScan`: `Component`, `StaticSink`, Java 규칙, 알려진 반환 타입, 브리지 애너테이션), 분류 우선순위(`Categories`).
 - `android/`: `AndroidManifests`(모듈의 src/main 매니페스트, namespace), `XmlTree`(DOCTYPE·외부 엔티티를 막은 SAX, 줄 번호), `AndroidConfigChecks`(매니페스트·네트워크 보안 설정 → detector=config), `AndroidRules`(Java 규칙, 줄 규칙, 입구 메서드), `AndroidScanner`.
-- iOS 는 `ios/` 에 같은 모양(설정 검사 + 줄 규칙 → `AppScan`)으로 더한다.
+- `ios/`: `Plist`(XML plist dict 읽기), `IosScanner`(Info.plist: ATS·파일 공유·URL 스킴 / entitlements: get-task-allow·유니버설 링크 → detector=config 와 입구, URL 을 받는 함수 위치), `IosRules`(Swift·Objective-C 줄 규칙). plist 는 `XmlTree.parsePlist` 로 읽는다(Apple 공개 DOCTYPE 만 지우고 내부 선언은 거절). `AppRegistry` 가 안드로이드·iOS 재료를 합친다.
 - 위험 지점 props `detector`: code(Java 호출), line(줄 규칙), config(설정). 새 분류는 `Categories.ORDER` 에도 넣는다. CWE 를 새로 쓰면 `findings/MobileMapping` 에 OWASP Mobile·MASVS 를 넣는다.
 - 새 도구는 `SherlockTools` 에 `ToolDef` 를 추가하고 `all()` 에 넣는다. 입력 오류는 `ToolException`.
 

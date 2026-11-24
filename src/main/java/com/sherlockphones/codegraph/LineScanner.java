@@ -113,7 +113,8 @@ public final class LineScanner {
     public static boolean skipped(Path relative) {
         for (int i = 0; i < relative.getNameCount() - 1; i++) {
             String part = relative.getName(i).toString();
-            if (SKIP_DIRS.contains(part)) {
+            // iOS 테스트 번들 폴더(BankTests, BankUITests)도 건너뛴다
+            if (SKIP_DIRS.contains(part) || part.endsWith("Tests")) {
                 return true;
             }
             if (part.equals("src") && i + 1 < relative.getNameCount() - 1 && TEST_DIRS.contains(relative.getName(i + 1).toString())) {

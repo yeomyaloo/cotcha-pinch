@@ -107,8 +107,13 @@ public class SherlockTools {
                 sb.append("플랫폼: Android · 매니페스트 ").append(app.android().manifests().size()).append("개 (")
                         .append(app.android().manifests().stream().map(m -> m.path() + (m.namespace().isEmpty() ? "" : " · " + m.namespace()))
                                 .collect(Collectors.joining(", "))).append(")\n");
-            } else {
-                sb.append("플랫폼: AndroidManifest.xml 을 찾지 못함 (줄 단위 규칙과 Java 코드만 봄)\n");
+            }
+            if (app.ios().detected()) {
+                sb.append("플랫폼: iOS · Info.plist ").append(app.ios().infoPlists().size()).append("개, entitlements ")
+                        .append(app.ios().entitlements().size()).append("개 (Swift·Objective-C 는 줄 단위 규칙, 호출 경로 없음)\n");
+            }
+            if (!app.android().detected() && !app.ios().detected()) {
+                sb.append("플랫폼: AndroidManifest.xml·Info.plist 를 찾지 못함 (줄 단위 규칙과 Java·Kotlin 코드만 봄)\n");
             }
             sb.append("파일 ").append(s.files()).append(" · Java 클래스 ").append(s.classes()).append(" · 메서드 ").append(s.methods())
                     .append(" · 진입점(외부에 열린 컴포넌트·JS 브리지) ").append(s.entryPoints()).append('\n')
@@ -118,6 +123,7 @@ public class SherlockTools {
                     .append("입구 → 위험 지점 경로(쌍) ").append(pairs).append("개. list_components, list_sink_paths, check_config, list_sinks 로 볼 수 있음\n");
             List<String> errors = new ArrayList<>(s.parseErrors());
             errors.addAll(app.android().errors());
+            errors.addAll(app.ios().errors());
             if (!errors.isEmpty()) {
                 sb.append("읽지 못한 파일 ").append(errors.size()).append("개: ")
                         .append(String.join("; ", errors.subList(0, Math.min(5, errors.size())))).append('\n');
@@ -229,10 +235,23 @@ public class SherlockTools {
                         + "빌드 타입별 설정(build.gradle 의 debuggable, manifestPlaceholders)이 덮어쓸 수 있으니 필요하면 grep_code 로 확인한다.",
                 schema(props("app", APP), List.of("app")), true, false, args -> {
             LoadedApp app = app(args);
-            if (!app.android().detected()) {
-                return "AndroidManifest.xml 을 찾지 못함";
+            if (!app.android().detected() && !app.ios().detected()) {
+                return "AndroidManifest.xml·Info.plist 를 찾지 못함";
             }
             StringBuilder sb = new StringBuilder();
+            for (var plist : app.ios().infoPlists()) {
+                var root = plist.root();
+                sb.append("## ").append(plist.path()).append(" (iOS)\n");
+                sb.append("- NSAppTransportSecurity = ").append(root.containsKey("NSAppTransportSecurity") ? "있음 (예외 설정)" : "(없음, 기본값: HTTPS 만)").append('\n');
+                sb.append("- UIFileSharingEnabled = ").append(root.containsKey("UIFileSharingEnabled") ? root.get("UIFileSharingEnabled").value().name() : "(없음)").append('\n');
+                sb.append("- URL 스킴 = ").append(root.containsKey("CFBundleURLTypes") ? "있음 (list_components)" : "(없음)").append('\n');
+            }
+            for (var plist : app.ios().entitlements()) {
+                var root = plist.root();
+                sb.append("## ").append(plist.path()).append(" (iOS entitlements)\n");
+                sb.append("- get-task-allow = ").append(root.containsKey("get-task-allow") ? root.get("get-task-allow").value().name() : "(없음)").append('\n');
+                sb.append("- associated-domains = ").append(root.containsKey("com.apple.developer.associated-domains") ? "있음 (list_components)" : "(없음)").append('\n');
+            }
             for (Manifest m : app.android().manifests()) {
                 sb.append("## ").append(m.path()).append(m.namespace().isEmpty() ? "" : " (" + m.namespace() + ")").append('\n');
                 for (String attr : List.of("android:debuggable", "android:allowBackup", "android:usesCleartextTraffic",
@@ -248,8 +267,10 @@ public class SherlockTools {
             sb.append("\n설정 문제 ").append(config.size()).append("개").append(config.isEmpty() ? "" : ":").append('\n');
             config.forEach(n -> sb.append("#").append(n.id()).append(" ").append(sinkLabel(n)).append(" · ").append(location(n))
                     .append(" · ").append(MobileMapping.brief(n.prop("cwe"))).append("\n    ").append(n.prop("snippet")).append('\n'));
-            if (!app.android().errors().isEmpty()) {
-                sb.append("\n읽지 못한 파일: ").append(String.join("; ", app.android().errors())).append('\n');
+            List<String> unread = new ArrayList<>(app.android().errors());
+            unread.addAll(app.ios().errors());
+            if (!unread.isEmpty()) {
+                sb.append("\n읽지 못한 파일: ").append(String.join("; ", unread)).append('\n');
             }
             return sb.toString();
         });

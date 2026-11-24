@@ -50,6 +50,8 @@ final class Prompts {
                   selectionArgs(?) 바인딩, 경로 정규화(getCanonicalPath)와 기준 폴더 확인, URL·호스트 허용 목록, Intent 의 대상 컴포넌트 확인,
                   FLAG_IMMUTABLE, EncryptedSharedPreferences·Keystore, 릴리스 빌드에서만 쓰는 설정(buildTypes).
                 - 줄 규칙 후보는 경로가 없을 수 있으니 파일을 직접 읽고 입력 출처를 확인합니다.
+                - iOS 는 URL_SCHEME·UNIVERSAL_LINK 입구의 처리 함수(list_components 가 위치를 알려줌)에서 시작합니다. Swift·Objective-C 는 아직 호출 경로가 없으니
+                  grep_code 로 값을 직접 따라갑니다. Keychain 접근성, SecTrustEvaluateWithError·인증서 고정, WKWebView URL 허용 목록, sqlite3_bind 를 막는 장치로 봅니다.
                 - WebView 는 setJavaScriptEnabled, addJavascriptInterface 로 노출한 메서드, 띄우는 URL 의 출처를 함께 봅니다.
                 - 약한 암호화·난수는 토큰·비밀번호·암호화 키처럼 보안에 쓰일 때만, 로그·저장은 실제로 민감한 값일 때만 취약합니다.
                 - 설정 문제(debuggable, allowBackup, 평문 HTTP, 사용자 인증서 신뢰)는 배포 빌드에 들어가는지(src/main, buildTypes)와 영향을 확인합니다.
