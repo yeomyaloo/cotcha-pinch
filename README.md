@@ -112,6 +112,8 @@ Claude loads the app, shows a numbered plan (component or file, category/CWE, at
 
 ## Tools
 
+Tool arguments are checked against each tool's schema before it runs. An unknown argument is an error, not silently ignored, and the message lists every problem at once with a suggestion (`reason` → "did you mean `reasoning`?"), missing required arguments, allowed values, fields inside `evidence` items, and the tool's full argument list with an example item.
+
 | Tool | What it does |
 |---|---|
 | `load_app` | Load a folder or public Git URL: manifests, config checks, line rules, code graph |
@@ -151,6 +153,7 @@ Settings (environment variables): `SHERLOCK_PHONES_HOME` (default `~/.sherlock-p
 | 3-2 | Objective-C parsing with cotcha-trail 0.6.0: URL handlers and `WKScriptMessageHandler` bridges in `.m` files with call paths, Objective-C WebView message rules | ✅ Done |
 | 3-3 | Swift ↔ Objective-C call links (cotcha-trail 0.7.0 `SwiftObjcInterop`): a Swift URL handler → Objective-C class → Swift class → sink is one path | ✅ Done |
 | 3-4 | Java ↔ Kotlin call links (cotcha-trail 0.8.0 `JavaKotlinInterop`): a Java activity → Kotlin class → Java sink is one path | ✅ Done |
+| 3-5 | Friendlier tool errors: arguments are checked against the schema, unknown names get a suggestion, all problems are listed at once (found in the blind benchmark runs) | ✅ Done |
 | 4 | CocoaPods and SwiftPM dependencies | ⏳ Planned |
 
 ## Development
@@ -295,6 +298,8 @@ Claude가 앱을 불러와 번호 붙은 계획(컴포넌트나 파일, 분류·
 
 ## 도구
 
+도구를 부르기 전에 인자를 스키마와 맞춰 본다. 모르는 인자는 조용히 무시하지 않고 오류로 알리고, 고칠 점을 한 번에 보여준다: 비슷한 이름 제안(`reason` → "`reasoning` 을 말한 건가요?"), 빠진 필수 인자, 허용하는 값, `evidence` 항목 안의 필드, 이 도구의 인자 목록과 항목 예시.
+
 | 도구 | 하는 일 |
 |---|---|
 | `load_app` | 폴더나 공개 Git 주소를 불러와 매니페스트, 설정 검사, 줄 단위 규칙, 코드 그래프를 만든다 |
@@ -334,6 +339,7 @@ Claude가 앱을 불러와 번호 붙은 계획(컴포넌트나 파일, 분류·
 | 3-2 | cotcha-trail 0.6.0 의 Objective-C 파서: `.m` 의 URL 처리 메서드·`WKScriptMessageHandler` 브리지에서 호출 경로, Objective-C WebView 메시지 규칙 | ✅ 완료 |
 | 3-3 | Swift ↔ Objective-C 호출 연결 (cotcha-trail 0.7.0 `SwiftObjcInterop`): Swift URL 처리 함수 → Objective-C 클래스 → Swift 클래스 → 위험 지점이 경로 하나로 이어짐 | ✅ 완료 |
 | 3-4 | Java ↔ Kotlin 호출 연결 (cotcha-trail 0.8.0 `JavaKotlinInterop`): Java 화면 → Kotlin 클래스 → Java 위험 지점이 경로 하나로 이어짐 | ✅ 완료 |
+| 3-5 | 도구 오류 안내: 인자를 스키마와 맞춰 보고, 모르는 이름에는 비슷한 인자를 제안하고, 문제를 한 번에 보여줌 (블라인드 벤치마크에서 에이전트가 막힌 곳) | ✅ 완료 |
 | 4 | CocoaPods·SwiftPM 라이브러리 검사 | ⏳ 예정 |
 
 ## 개발
