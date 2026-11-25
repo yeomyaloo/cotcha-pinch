@@ -36,6 +36,8 @@ python benchmark/score.py benchmark/bank-app.expected.json report-*.sarif --conf
 
 All Android misses came from merging, not from missing the bug: two runs folded the three "exported without permission" items (CWE-926) into the code findings they expose (SQL injection, path traversal, intent redirection), one merged the hardcoded PIN key into the AES/ECB finding, one merged the deep-link URL loading into the JS bridge finding, and one left out `CouponWebView` because nothing calls it. No run reported a trap.
 
+**After the guidance fix (plugin 0.10.1):** the skill now asks for one finding per weakness (one location + one CWE, related ids in the description) and says shipped code with no caller is still recorded at lower severity. Three new blind runs on `bank-app` under the same instructions (the prompt did not mention the new rule): recall 100%, 100%, 100%, precision 100%, trap false positives 0/11 in every run, the same outcome for 34/34 items, mean Jaccard 1.00.
+
 Rules: a finding points at an item when one of its locations is inside the item's file and line range. With an accepted CWE it is a hit, with another CWE a wrong category. Pointing at a trap is a trap false positive; pointing at nothing is another false positive. Rejected findings are ignored. Consistency is the share of items with the same outcome in every run, plus the mean Jaccard similarity between runs.
 
 ---
@@ -72,5 +74,7 @@ Rules: a finding points at an item when one of its locations is inside the item'
 | `bank-ios` | 100%, 100%, 100% | 모두 100% | 모두 0/6 | 21개 중 21개 (100%) | 1.00 |
 
 안드로이드에서 놓친 것은 모두 버그를 못 찾아서가 아니라 합쳐 적어서다: 두 실행이 '권한 없이 외부에 열린 컴포넌트' 3건(CWE-926)을 그 컴포넌트로 드러나는 코드 발견(SQL 인젝션, 경로 조작, 인텐트 리다이렉트)에 합쳤고, 한 실행은 하드코딩된 PIN 키를 AES/ECB 발견에, 한 실행은 딥링크 URL 로딩을 JS 브리지 발견에 합쳤고, 한 실행은 부르는 곳이 없는 `CouponWebView` 를 뺐다. 함정을 신고한 실행은 없다.
+
+**지침을 고친 뒤 (플러그인 0.10.1):** 지침에 '약점 하나(위치 하나 + CWE 하나)에 발견 하나, 관련 발견 id 는 설명에', '부르는 곳이 없는 배포 코드도 심각도를 낮춰 기록'을 넣었다. 같은 지시로(지시문에는 새 규칙을 적지 않음) `bank-app` 을 블라인드로 3번 다시 돌린 결과: 재현율 100%, 100%, 100%, 정밀도 100%, 함정 오탐 모두 0/11, 34개 항목 모두 같은 결론, 평균 자카드 1.00.
 
 규칙: 발견의 위치 중 하나가 항목의 파일·줄 범위 안에 있으면 그 항목을 가리킨 것이다. CWE 가 인정 목록에 있으면 맞힌 것, 다르면 분류 틀림이다. 함정을 가리키면 함정 오탐, 아무것도 가리키지 않으면 기타 오탐이다. 기각된 발견은 빼고 센다. 일관성은 모든 실행에서 같은 결론이 난 항목의 비율과 실행 간 평균 자카드 유사도다.
