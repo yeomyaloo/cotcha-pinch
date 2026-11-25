@@ -1,5 +1,6 @@
 package com.sherlockphones.codegraph;
 
+import com.codeagent.core.interop.JavaKotlinInterop;
 import com.codeagent.core.interop.SwiftObjcInterop;
 import com.codeagent.core.java.JavaGraphSupport;
 import com.codeagent.core.java.JavaProject;
@@ -82,6 +83,8 @@ public class CodeGraphBuilder {
         this.scan = scan;
         this.support = new JavaGraphSupport(project, draft, scan.knownReturnTypes());
         this.kotlinSupport = new KotlinGraphSupport(kotlin, draft, scan.knownReturnTypes());
+        // Java 가 Kotlin 클래스를, Kotlin 이 Java 클래스를 부르는 것도 잇는다
+        new JavaKotlinInterop(project, kotlin).connect(support, kotlinSupport);
         this.swiftSupport = new SwiftGraphSupport(swift, draft, Map.of());
         this.objcSupport = new ObjcGraphSupport(objc, draft);
         // Swift 가 Objective-C 클래스를, Objective-C 가 Swift 클래스를 부르는 것도 잇는다
