@@ -25,6 +25,8 @@ python benchmark/score.py benchmark/bank-app.expected.json report-*.sarif --conf
 
 **Results so far:** one blind run on 2026-11-25 (a fresh agent that never saw the answer key, using the plugin tools through a command-line runner; plugin 0.9.x, `bank-app` only): recall 100% (23/23), precision 100%, trap false positives 0/11. One run says nothing about consistency, and that agent also did the verification pass itself, so it was not independent.
 
+**iOS:** one blind run on 2026-11-25 on `bank-ios` (plugin 0.9.x): recall 100% (15/15), precision 100%, trap false positives 0/6. This time a separate agent did the verification pass, given only the findings and the app path. Its caveat: several flawed pieces (APIClient, TokenStore.save, LegacyLogin) are never called inside the app, so their real impact depends on use, and `get-task-allow` matters only if it reaches a release build.
+
 Rules: a finding points at an item when one of its locations is inside the item's file and line range. With an accepted CWE it is a hit, with another CWE a wrong category. Pointing at a trap is a trap false positive; pointing at nothing is another false positive. Rejected findings are ignored. Consistency is the share of items with the same outcome in every run, plus the mean Jaccard similarity between runs.
 
 ---
@@ -50,5 +52,7 @@ Rules: a finding points at an item when one of its locations is inside the item'
 3. 채점한다 (위 명령).
 
 **지금까지 결과:** 2026-11-25 블라인드 실행 1번(정답을 본 적 없는 새 에이전트가 명령줄 실행기로 플러그인 도구를 씀, 플러그인 0.9.x, `bank-app` 만): 재현율 100%(23/23), 정밀도 100%, 함정 오탐 0/11. 한 번이라 일관성은 알 수 없고, 같은 에이전트가 검증까지 해서 독립 검증은 아니다.
+
+**iOS:** 2026-11-25 `bank-ios` 블라인드 실행 1번(플러그인 0.9.x): 재현율 100%(15/15), 정밀도 100%, 함정 오탐 0/6. 이번에는 발견 목록과 앱 경로만 받은 별도 에이전트가 검증했다. 그 에이전트의 단서: 결함 있는 코드 일부(APIClient, TokenStore.save, LegacyLogin)는 앱 안에서 부르는 곳이 없어서 실제 영향은 쓰이는지에 달렸고, `get-task-allow` 는 배포 빌드에 들어갈 때만 문제다.
 
 규칙: 발견의 위치 중 하나가 항목의 파일·줄 범위 안에 있으면 그 항목을 가리킨 것이다. CWE 가 인정 목록에 있으면 맞힌 것, 다르면 분류 틀림이다. 함정을 가리키면 함정 오탐, 아무것도 가리키지 않으면 기타 오탐이다. 기각된 발견은 빼고 센다. 일관성은 모든 실행에서 같은 결론이 난 항목의 비율과 실행 간 평균 자카드 유사도다.
