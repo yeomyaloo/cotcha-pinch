@@ -48,7 +48,13 @@ For each item:
   - **STORAGE / LOGGING**: only a problem for real secrets (tokens, passwords, PINs, keys), not for constant messages or encrypted storage.
   - **WEAK_CRYPTO / WEAK_RANDOM**: only when protecting secrets or generating tokens/OTPs; SHA-256 for pinning and `Random` for UI shuffling are fine.
   - **Config**: confirm the value reaches the release build (manifest merger, `buildTypes`, `manifestPlaceholders`).
-- Call `record_finding` **only** when you confirmed the attacker reaches the sink unblocked. Include `attacker`, file:line evidence and a concrete attack (an `adb shell am start` / `content query` command, a malicious app snippet, or a deep link URL). Never write secret values in full — mask them.
+- Call `record_finding` when you confirmed the weakness in the shipped code or config and nothing blocks the attacker. Include `attacker`, file:line evidence and a concrete attack (an `adb shell am start` / `content query` command, a malicious app snippet, or a deep link URL). Never write secret values in full — mask them.
+- **One finding per weakness** (a weakness = one location + one CWE). Do not fold one weakness into another, even when they are related; mention the related finding id in the description instead. In particular:
+  - An exported component without a permission (CWE-926, at its manifest line) is its own finding, separate from the code bug behind it (SQL injection in the provider, path traversal in `openFile`, intent redirection in the activity).
+  - A hardcoded key (CWE-321/798, where the key is) is separate from the weak cipher or mode that uses it (CWE-327).
+  - Loading an attacker-chosen URL in a WebView (CWE-939, at `loadUrl`) is separate from what the page can then do through a JS bridge (CWE-749, at the bridge).
+  - The same weakness reported twice (same location and CWE) is a duplicate: record it once.
+- **Shipped code with no caller in the source is still a finding** when the weakness is in the code itself (a hardcoded secret, ECB, a trust-all TrustManager, a WebView with universal file access). It ships in the app, can be reached by reflection, a library or a later change, and is extracted by anyone with the APK. Record it with `severity` low (unless the secret alone is damaging), and say "no caller found in the app source" in the description. Do not skip it.
 
 If you can spawn subagents (Claude Code `Agent` tool), give each plan item to its own subagent in parallel with the app id, the item and these rules.
 
@@ -60,7 +66,7 @@ Switch sides. For each finding (`list_findings` with `detail=true`), assume the 
 - **Defenses** — does any control above stop it?
 - **Impact** — what does the attacker gain (another app's data, tokens, code execution, a hijacked UI)? Is the severity inflated?
 
-Then `submit_verdict`: `confirmed`, `rejected` (blocked, not reachable, debug-only), or `uncertain` (only when the deciding code is not in the app source). Use a different subagent from the investigator if you can.
+Then `submit_verdict`: `confirmed`, `rejected` (a control blocks it, it only exists in debug or test builds, or the attacker cannot reach it at all), or `uncertain` (only when the deciding code is not in the app source). Having no caller in the source is not a reason to reject a weakness in shipped code; lower the severity instead. Do not reject a finding because another finding covers the same component: a different CWE at a different location is a separate weakness. Use a different subagent from the investigator if you can.
 
 ## 4. Report
 
