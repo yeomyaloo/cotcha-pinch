@@ -36,7 +36,7 @@ repositories {
 dependencies {
 	implementation 'io.modelcontextprotocol.sdk:mcp:2.0.1'
 	// 공용 코드 그래프 엔진 cotcha-trail (Java·Kotlin 파싱·구조·호출 연결). 안드로이드 규칙은 이 저장소에 있다
-	implementation 'com.codeagent:core-code-agent:0.12.0'
+	implementation 'com.codeagent:core-code-agent:0.13.0'
 	implementation 'org.eclipse.jgit:org.eclipse.jgit:7.8.0.202609011348-r'
 	implementation 'org.slf4j:slf4j-api:2.0.17'
 	// MCP stdio 는 stdout 으로 통신하므로 로그는 stderr 로만 (slf4j-simple 기본값)

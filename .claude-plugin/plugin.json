@@ -1,7 +1,7 @@
 {
   "name": "cotcha-pinch",
   "displayName": "cotcha-pinch: catch security bugs in mobile apps",
-  "version": "0.9.4",
+  "version": "0.9.5",
   "description": "Audit Android and iOS app source code for security vulnerabilities in chat. Checks the manifest and network security config, follows exported components, deep links and JS bridges to dangerous code with a code graph, records findings by attacker (other app, link, network, device), re-verifies each one adversarially, and exports Markdown/SARIF reports mapped to the OWASP Mobile Top 10 and MASVS. Requires Java 17+.",
   "author": {
     "name": "hwiju yeom",
