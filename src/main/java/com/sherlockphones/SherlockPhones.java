@@ -35,7 +35,7 @@ import java.util.Map;
 public final class SherlockPhones {
 
     private static final Logger log = LoggerFactory.getLogger(SherlockPhones.class);
-    static final String VERSION = "0.9.6";
+    static final String VERSION = "0.9.7";
 
     private SherlockPhones() {
     }
